@@ -1,0 +1,20 @@
+name: write_bash_script
+domain: terminal
+description_template: "Write a bash script named '{script_name}' that {script_action} and make it executable"
+difficulty_base: 0.5
+slots:
+  script_name:
+    type: choice
+    options: [cleanup.sh, backup.sh, process.sh, monitor.sh, setup.sh, report.sh]
+  script_action:
+    type: choice
+    options:
+      - "counts the number of files in the current directory and prints the count"
+      - "prints the current date and time in ISO-8601 format"
+      - "lists all .txt files in the current directory sorted by modification time"
+      - "prints the sum of all integers passed as arguments"
+      - "creates a timestamped backup directory and copies all .log files into it"
+scaffolding_template: "Empty workspace; agent must write the script from scratch"
+success_criteria_template:
+  exit_code: 0
+  expected_file: "{script_name}"

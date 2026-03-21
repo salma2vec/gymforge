@@ -1,0 +1,22 @@
+name: count_lines
+domain: terminal
+description_template: "Count the number of lines in {filename} that contain the pattern '{pattern}'"
+difficulty_base: 0.2
+slots:
+  filename:
+    type: choice
+    options: [data.txt, logs.txt, output.txt, results.txt, records.txt]
+  pattern:
+    type: choice
+    options: ["TODO", "ERROR", "WARNING", "def ", "import", "FAIL", "PASS"]
+  n_lines:
+    type: int_range
+    min: 20
+    max: 200
+  n_matching:
+    type: int_range
+    min: 3
+    max: 30
+scaffolding_template: "Create {filename} with {n_lines} lines, {n_matching} containing '{pattern}'"
+success_criteria_template:
+  expected_output: "{n_matching}"

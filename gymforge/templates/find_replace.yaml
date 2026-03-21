@@ -1,0 +1,21 @@
+name: find_replace
+domain: terminal
+description_template: "In {filename}, replace all occurrences of '{old_text}' with '{new_text}' and print the number of replacements made"
+difficulty_base: 0.25
+slots:
+  filename:
+    type: choice
+    options: [config.txt, settings.ini, hosts.txt, words.txt, template.txt]
+  old_text:
+    type: choice
+    options: ["localhost", "debug", "http://", "TODO", "placeholder", "foo", "old_value"]
+  new_text:
+    type: choice
+    options: ["production", "info", "https://", "DONE", "actual", "bar", "new_value"]
+  n_occurrences:
+    type: int_range
+    min: 2
+    max: 20
+scaffolding_template: "Create {filename} containing {n_occurrences} occurrences of '{old_text}'"
+success_criteria_template:
+  expected_output: "{n_occurrences}"

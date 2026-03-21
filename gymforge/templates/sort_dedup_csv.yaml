@@ -1,0 +1,25 @@
+name: sort_dedup_csv
+domain: terminal
+description_template: "Sort {filename} by the '{sort_col}' column and remove duplicate rows, writing the result to {output_file}"
+difficulty_base: 0.4
+slots:
+  filename:
+    type: choice
+    options: [data.csv, records.csv, users.csv, events.csv, scores.csv]
+  sort_col:
+    type: choice
+    options: [name, id, score, date, email, value]
+  output_file:
+    type: choice
+    options: [sorted.csv, clean.csv, output.csv, result.csv, deduped.csv]
+  n_rows:
+    type: int_range
+    min: 10
+    max: 50
+  n_dupes:
+    type: int_range
+    min: 2
+    max: 8
+scaffolding_template: "Create {filename} with {n_rows} rows including {n_dupes} duplicate rows, with columns: id,{sort_col},value"
+success_criteria_template:
+  expected_file: "{output_file}"

@@ -1,0 +1,18 @@
+name: find_largest_file
+domain: terminal
+description_template: "Find the largest file by size in the '{directory}' directory and print only its filename (not the full path)"
+difficulty_base: 0.3
+slots:
+  directory:
+    type: choice
+    options: [data, logs, uploads, assets, cache, reports, output]
+  n_files:
+    type: int_range
+    min: 5
+    max: 20
+  largest_file:
+    type: choice
+    options: [big.txt, archive.log, dump.bin, export.csv, snapshot.txt, backup.dat]
+scaffolding_template: "Create directory '{directory}' with {n_files} files of varying sizes; '{largest_file}' is the largest"
+success_criteria_template:
+  expected_output: "{largest_file}"
