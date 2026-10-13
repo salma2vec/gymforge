@@ -7,11 +7,11 @@ import os
 import shutil
 import tempfile
 from difflib import unified_diff
-from pathlib import Path
-from typing import Any
 
 from gymforge.core.environment import BaseEnvironment, Observation
+from gymforge.core.execution import workspace_path
 from gymforge.core.task import TaskSpec
+from gymforge.evaluation.oracle import OracleChecker
 
 
 class EditorEnvironment(BaseEnvironment):
@@ -52,7 +52,11 @@ class EditorEnvironment(BaseEnvironment):
             shutil.rmtree(self._workdir, ignore_errors=True)
         self._workdir = tempfile.mkdtemp()
         self._step_count = 0
-        self._apply_scaffolding()
+        try:
+            self._apply_scaffolding()
+        except Exception:
+            self.close()
+            raise
         return {
             "status": "ok",
             "op": "reset",
@@ -69,7 +73,10 @@ class EditorEnvironment(BaseEnvironment):
         if self._workdir is None:
             raise RuntimeError("Call reset() before step().")
 
-        obs = self._dispatch(action)
+        try:
+            obs = self._dispatch(action)
+        except (ValueError, TypeError, OSError) as exc:
+            obs = {"status": "error", "error": str(exc), "content": "", "cwd": self._workdir}
         self._step_count += 1
         success = self._check_success()
         reward = 1.0 if success else 0.0
@@ -116,11 +123,17 @@ class EditorEnvironment(BaseEnvironment):
             "error": "",
             "cwd": self._workdir,
         }
+        if not isinstance(action, str) or len(action) > 1_048_576:
+            raise ValueError("Action exceeds editor limit")
         try:
             cmd = json.loads(action)
         except json.JSONDecodeError as exc:
             base["status"] = "error"
             base["error"] = f"Invalid JSON action: {exc}"
+            return base
+
+        if not isinstance(cmd, dict):
+            base["status"], base["error"] = "error", "Action must be a JSON object"
             return base
 
         op = cmd.get("op", "")
@@ -143,10 +156,7 @@ class EditorEnvironment(BaseEnvironment):
 
     def _resolve(self, rel_path: str) -> str:
         """Resolve *rel_path* relative to the workspace, rejecting path traversal."""
-        resolved = os.path.realpath(os.path.join(self._workdir, rel_path))  # type: ignore[arg-type]
-        if not resolved.startswith(os.path.realpath(self._workdir)):  # type: ignore[arg-type]
-            raise ValueError(f"Path traversal detected: {rel_path!r}")
-        return resolved
+        return str(workspace_path(self._workdir, rel_path))
 
     def _op_read(self, cmd: dict, obs: Observation) -> Observation:
         path = self._resolve(cmd.get("path", ""))
@@ -154,6 +164,8 @@ class EditorEnvironment(BaseEnvironment):
             obs["status"] = "error"
             obs["error"] = f"File not found: {cmd.get('path')}"
             return obs
+        if os.path.getsize(path) > 1_048_576:
+            raise ValueError("File exceeds editor read limit")
         with open(path) as fh:
             obs["content"] = fh.read()
         return obs
@@ -172,6 +184,8 @@ class EditorEnvironment(BaseEnvironment):
             obs["status"] = "error"
             obs["error"] = f"File not found: {cmd.get('path')}"
             return obs
+        if os.path.getsize(path) > 1_048_576:
+            raise ValueError("File exceeds editor patch limit")
         with open(path) as fh:
             original = fh.read()
         old = cmd.get("old", "")
@@ -211,6 +225,8 @@ class EditorEnvironment(BaseEnvironment):
             obs["status"] = "error"
             obs["error"] = f"Path not found: {cmd.get('path')}"
             return obs
+        if path == self._workdir:
+            raise ValueError("Cannot delete workspace root")
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:
@@ -223,31 +239,11 @@ class EditorEnvironment(BaseEnvironment):
 
     def _apply_scaffolding(self) -> None:
         for fname, content in self._task_spec.scaffolding.get("files", {}).items():
-            path = os.path.join(self._workdir, fname)  # type: ignore[arg-type]
+            path = self._resolve(fname)  # type: ignore[arg-type]
             os.makedirs(os.path.dirname(path) or self._workdir, exist_ok=True)
             with open(path, "w") as fh:
                 fh.write(content)
 
     def _check_success(self) -> bool:
         """Evaluate the workspace against the task success criteria."""
-        criteria = self._task_spec.success_criteria
-        if not criteria:
-            return False
-
-        expected_file = criteria.get("expected_file")
-        if expected_file:
-            path = os.path.join(self._workdir, expected_file)  # type: ignore[arg-type]
-            if not os.path.isfile(path):
-                return False
-
-            if "expected_file_exact" in criteria:
-                with open(path) as fh:
-                    return fh.read() == criteria["expected_file_exact"]
-
-            if "expected_file_content" in criteria:
-                with open(path) as fh:
-                    return criteria["expected_file_content"].strip() in fh.read()
-
-            return True
-
-        return False
+        return OracleChecker().check_file(self.task_spec, self.workdir)[0]

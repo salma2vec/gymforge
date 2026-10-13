@@ -1,6 +1,6 @@
 name: sort_dedup_csv
 domain: terminal
-description_template: "Sort {filename} by the '{sort_col}' column and remove duplicate rows, writing the result to {output_file}"
+description_template: "Sort {filename} by the '{sort_col}' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to {output_file}"
 difficulty_base: 0.4
 slots:
   filename:

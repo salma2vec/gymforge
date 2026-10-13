@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import csv
+import hashlib
+import io
+import json
 import random
 from pathlib import Path
 from typing import Any
@@ -59,10 +63,12 @@ class TaskGenerator:
         Tasks are drawn reproducibly from the available templates using *seed*.
         If there are no templates matching *domain*, raises ``ValueError``.
         """
+        if not isinstance(n, int) or n < 0:
+            raise ValueError("n must be a nonnegative integer")
+        if not 0 <= difficulty_target <= 1:
+            raise ValueError("difficulty_target must be in [0, 1]")
         rng = random.Random(seed)
-        domain_templates = [
-            t for t in self._templates.values() if t.get("domain") == domain
-        ]
+        domain_templates = [t for t in self._templates.values() if t.get("domain") == domain]
         if not domain_templates:
             raise ValueError(
                 f"No templates found for domain '{domain}'. "
@@ -91,7 +97,7 @@ class TaskGenerator:
         templates: dict[str, dict] = {}
         if not self.templates_dir.exists():
             return templates
-        for f in self.templates_dir.glob("*.yaml"):
+        for f in sorted(self.templates_dir.glob("*.yaml")):
             with open(f) as fp:
                 data = yaml.safe_load(fp)
             if data:
@@ -126,8 +132,32 @@ class TaskGenerator:
         # Build success criteria
         raw_criteria = template.get("success_criteria_template", {})
         success_criteria = {
-            k: self._render(str(v), values) for k, v in raw_criteria.items()
+            k: self._render(v, values) if isinstance(v, str) else v for k, v in raw_criteria.items()
         }
+
+        family = template.get("name")
+        if family == "find_replace":
+            success_criteria["expected_file"] = values["filename"]
+            success_criteria["expected_file_exact"] = files[values["filename"]].replace(
+                values["old_text"], values["new_text"]
+            )
+        elif family == "sort_dedup_csv":
+            rows = list(csv.reader(io.StringIO(files[values["filename"]])))
+            col = rows[0].index(values["sort_col"])
+            output = io.StringIO()
+            writer = csv.writer(output, lineterminator="\n")
+            writer.writerow(rows[0])
+            writer.writerows(sorted(set(map(tuple, rows[1:])), key=lambda row: (row[col], row)))
+            success_criteria["expected_file_exact"] = output.getvalue()
+        elif family == "write_bash_script":
+            # Stable, testable behavior: avoid wall-clock- and platform-dependent tasks.
+            success_criteria["expected_file_executable"] = True
+            script = values["script_name"]
+            success_criteria["script_cases"] = [
+                {"command": f"./{script} 2 3 7", "expected": "12"},
+                {"command": f"./{script} -4 10 0", "expected": "6"},
+                {"command": f"./{script}", "expected": "0"},
+            ]
 
         difficulty = self._adjust_difficulty(
             float(template.get("difficulty_base", 0.3)),
@@ -136,6 +166,17 @@ class TaskGenerator:
         )
 
         return TaskSpec(
+            id=hashlib.sha256(
+                json.dumps(
+                    {
+                        "template": template,
+                        "values": values,
+                        "files": files,
+                        "difficulty": difficulty,
+                    },
+                    sort_keys=True,
+                ).encode()
+            ).hexdigest()[:24],
             name=self._render(template.get("name", "task"), values),
             description=description,
             domain=template.get("domain", "terminal"),
@@ -198,7 +239,8 @@ class TaskGenerator:
             filename = values.get("filename", "data.txt")
             pattern = values.get("pattern", "TODO")
             n_lines = int(values.get("n_lines", 50))
-            n_matching = int(values.get("n_matching", 5))
+            n_matching = min(int(values.get("n_matching", 5)), n_lines)
+            values["n_matching"] = n_matching
             lines = []
             match_indices = set(rng.sample(range(n_lines), min(n_matching, n_lines)))
             for i in range(n_lines):
@@ -212,17 +254,13 @@ class TaskGenerator:
             filename = values.get("filename", "config.txt")
             old_text = values.get("old_text", "placeholder")
             n_occurrences = int(values.get("n_occurrences", 5))
+            match_indices = set(rng.sample(range(40), n_occurrences))
             filler = [
                 f"setting_{i} = {old_text}_value_{i}"
-                if rng.random() < (n_occurrences / 20)
+                if i in match_indices
                 else f"param_{i} = default_{i}"
                 for i in range(40)
             ]
-            # ensure exactly n_occurrences
-            actual = sum(old_text in line for line in filler)
-            extra_needed = n_occurrences - actual
-            for i in range(max(extra_needed, 0)):
-                filler.append(f"extra_{i} = {old_text}_extra")
             files[filename] = "\n".join(filler) + "\n"
 
         elif name == "sort_dedup_csv":
@@ -230,16 +268,22 @@ class TaskGenerator:
             sort_col = values.get("sort_col", "name")
             n_rows = int(values.get("n_rows", 20))
             n_dupes = int(values.get("n_dupes", 3))
-            col_names = ["id", sort_col, "value"]
+            col_names = ["row_id", sort_col, "payload"]
             sample_names = [
-                "alpha", "beta", "gamma", "delta", "epsilon",
-                "zeta", "eta", "theta", "iota", "kappa",
+                "alpha",
+                "beta",
+                "gamma",
+                "delta",
+                "epsilon",
+                "zeta",
+                "eta",
+                "theta",
+                "iota",
+                "kappa",
             ]
             rows = []
             for i in range(n_rows - n_dupes):
-                rows.append(
-                    [str(i), sample_names[i % len(sample_names)], str(rng.randint(1, 100))]
-                )
+                rows.append([str(i), sample_names[i % len(sample_names)], str(rng.randint(1, 100))])
             dup_source = rows[: min(n_dupes, len(rows))]
             rows.extend(dup_source[:n_dupes])
             rng.shuffle(rows)

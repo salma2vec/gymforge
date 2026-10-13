@@ -1,228 +1,114 @@
 # gymforge
 
-Reproducible, evaluable reinforcement learning environments for training agents on computer-use tasks.
+Procedural terminal-task generation and evaluation with explicit verifiers, seeded task manifests, and action traces. Five bundled task families cover counting, file discovery, replacement, CSV transformation, and script writing.
 
-gymforge provides a structured framework for generating diverse task batches, running sandboxed episodes, and scoring agent performance — all from a clean Python API with no external services required.
+This is a small research toolkit for studying task construction and verifier integrity. It does not include RL training, desktop/browser interaction, or published model scores. Difficulty labels are heuristic metadata, not calibrated human or model difficulty.
 
----
+## Install
 
-## Installation
-
-```bash
-pip install gymforge
-```
-
-Or from source:
+Python 3.11+ on Linux or macOS:
 
 ```bash
 git clone https://github.com/salma2vec/gymforge.git
 cd gymforge
-pip install -e ".[dev]"
+python -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+pytest -q
 ```
 
-**Requirements:** Python 3.11+, no Docker required.
+The source checkout is the supported installation route. The package includes the `gymforge` CLI and bundled YAML templates.
 
----
+## Run a verifiable experiment
 
-## Quickstart
+Shell environments default to Docker. Install a Docker daemon and pull the image before running; evaluation never pulls images implicitly.
 
-### Define a task and run an episode
-
-```python
-from gymforge.core import TaskSpec
-from gymforge.envs import BashEnvironment
-
-task = TaskSpec(
-    name="count_errors",
-    description="Count lines containing 'ERROR' in logs.txt",
-    domain="terminal",
-    difficulty=0.2,
-    success_criteria={"expected_output": "3"},
-    scaffolding={
-        "files": {
-            "logs.txt": (
-                "INFO: startup\n"
-                "ERROR: connection refused\n"
-                "INFO: retrying\n"
-                "ERROR: timeout\n"
-                "WARNING: slow\n"
-                "ERROR: disk full\n"
-            )
-        }
-    },
-)
-
-env = BashEnvironment(task)
-obs = env.reset()
-
-obs, reward, done, info = env.step("grep -c ERROR logs.txt")
-print(obs["stdout"])   # "3\n"
-print(reward)          # 1.0
-print(done)            # True
-
-env.close()
+```bash
+docker pull python:3.12-slim
+gymforge generate --domain terminal --n 50 --seed 42 --out tasks.jsonl
+gymforge verify --n 50 --seed 42 --backend docker --out integrity-report.json
 ```
 
-### Generate tasks procedurally
+`verify` runs transparent reference solvers and a no-op control on the same generated tasks. It saves task IDs, a task-set SHA-256 digest, seed, execution backend, per-task outcomes, and totals. A correct harness run gives every reference solution full credit and every no-op zero credit; a failed check exits nonzero. These are **verifier-integrity checks, not agent benchmark results**. Reference solvers receive template slots, but never read success criteria.
+
+For trusted, inspected commands only, `--backend unsafe-local` explicitly opts into host execution. Tests use this backend for small source-controlled fixtures. Never give it untrusted model actions, downloaded task files, or setup/oracle commands.
+
+## API
 
 ```python
 from gymforge.generation import TaskGenerator
-
-gen = TaskGenerator()
-tasks = gen.generate(domain="terminal", difficulty_target=0.4, n=50, seed=42)
-
-for task in tasks[:3]:
-    print(task.name, task.description)
-```
-
-### Evaluate an agent across a task batch
-
-```python
 from gymforge.envs import BashEnvironment
 from gymforge.evaluation import Evaluator
 
-def my_agent(obs: dict) -> str:
-    # Replace with your model's inference
-    return "grep -c ERROR logs.txt"
+spec = TaskGenerator().generate('terminal', difficulty_target=.4, n=1, seed=42)[0]
 
-evaluator = Evaluator()
-report = evaluator.evaluate(
-    BashEnvironment, task, my_agent, n_episodes=10, max_workers=4
-)
-print(f"Success rate: {report.success_rate:.0%}")
-print(f"Mean reward:  {report.mean_reward:.3f}")
+def agent(observation):
+    # Observation includes the task description. Replace with a policy.
+    return 'ls -la'
+
+report = Evaluator().evaluate(BashEnvironment, spec, agent, n_episodes=3, seed=42)
+print(report.success_rate)
 ```
 
-### Record and replay traces
+Environments expose `reset() -> observation`, `step(action) -> observation, reward, done, info`, and `close()`. This is **not the Gymnasium five-value step API**. `info.success` distinguishes passing from exhausting the step budget; pipeline rewards are incremental rather than repeatedly paying for completed stages. Always close manual environments in a `finally` block.
+
+| Environment | Actions | Execution |
+| --- | --- | --- |
+| `BashEnvironment` | Shell command strings | Docker by default |
+| `FileSystemEnvironment` | Shell commands plus file-hash observations | Docker by default |
+| `EditorEnvironment` | JSON read/write/patch/list/delete operations | Relative paths confined to a temporary workspace |
+| `PipelineEnvironment` | Shell commands; ordered task stages | Docker by default |
+
+An editor task needs no Docker:
 
 ```python
-from gymforge.trace import TraceRecorder, TraceReplayer
+import json
+from gymforge.core import TaskSpec
+from gymforge.envs import EditorEnvironment
 
-recorder = TraceRecorder(env, "/tmp/trace.jsonl")
-obs = recorder.reset()
-recorder.step("grep -c ERROR logs.txt")
-recorder.save()
-
-# Later: deterministic replay for debugging
-replayer = TraceReplayer("/tmp/trace.jsonl")
-results = replayer.replay(env)
-print(replayer.summary(results))
+spec = TaskSpec(name='write', description='Write hello to answer.txt',
+    domain='editor', difficulty=.1,
+    success_criteria={'expected_file': 'answer.txt', 'expected_file_exact': 'hello'})
+env = EditorEnvironment(spec)
+try:
+    env.reset()
+    print(env.step(json.dumps({'op':'write', 'path':'answer.txt', 'content':'hello'}))[1])
+finally:
+    env.close()
 ```
 
----
+## Verifiers and reproducibility
 
-## Architecture
+All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown binary criterion keys fail closed. Rubrics explicitly support partial credit and `output_contains` when a substring is intended.
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│  Generation layer                                            │
-│  TaskGenerator  ←  YAML templates  ←  difficulty / diversity │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ TaskSpec
-┌────────────────────────────▼─────────────────────────────────┐
-│  Environment layer                                           │
-│  BashEnvironment │ FileSystemEnvironment │ EditorEnvironment  │
-│  PipelineEnvironment  (reset / step / render / close)        │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ Observation, reward, done
-┌────────────────────────────▼─────────────────────────────────┐
-│  Evaluation layer                                            │
-│  Evaluator (parallel rollouts)                               │
-│  OracleChecker  │  RubricChecker (partial credit)            │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ EpisodeResult / EvaluationReport
-┌────────────────────────────▼─────────────────────────────────┐
-│  Trace layer                                                 │
-│  TraceRecorder (JSONL)  │  TraceReplayer (deterministic)     │
-└──────────────────────────────────────────────────────────────┘
-```
+Generated files and answers agree: replacement tasks check both the count and edited content; CSV tasks compare a canonical sorted/deduplicated output; script tasks execute multiple argument cases. Output-only tasks still admit answer guessing, and script cases are public. These fixtures are not a hidden test set or a proof against adversarial reward hacking.
 
----
+The same generator seed and template version produce identical complete task JSON and IDs. Evaluation assigns episode seeds in submission order and preserves result ordering. Policies must manage their own randomness and be thread-safe; setting an environment seed does not seed an external model or shared policy. Traces preserve actions and observations; replay can compare outputs, but nondeterministic commands, external policies and timestamps are not made deterministic by recording them.
 
-## CLI
+## Execution boundary
+
+The Docker backend uses no network, an unprivileged UID, a read-only root, dropped capabilities, no-new-privileges, limits on CPU/memory/PIDs/file size, and one writable task-workspace mount. It caps captured output at 1 MiB and removes the container on timeout. Set `GYMFORGE_IMAGE` to a locally available immutable image digest for a reproducible environment.
+
+Containers share the host kernel. This is not a hardened multi-tenant service; run hostile workloads on a dedicated disposable VM with disk quotas. The writable workspace can consume host disk across many files. `unsafe-local` has no filesystem/network isolation even though inherited secrets are stripped and output/time are bounded. Editor path confinement assumes no concurrent hostile process changing workspace symlinks.
+
+Docker integration is opt-in:
 
 ```bash
-# Generate 20 tasks and save to tasks.jsonl
-gymforge generate --domain terminal --difficulty 0.5 --n 20 --out tasks.jsonl
-
-# Run one episode with a random agent
-gymforge run --env bash --task-file tasks.jsonl --agent random
-
-# Evaluate a constant-command agent across all tasks
-gymforge eval --tasks-file tasks.jsonl --agent "constant:grep -c ERROR logs.txt" --episodes 5
+GYMFORGE_TEST_DOCKER=1 pytest tests/test_integrity.py -q
 ```
 
----
+## Research context
 
-## Adding a new environment
+[Terminal-Bench 4.0](https://www.tbench.ai/news/terminal-bench-4-0) emphasizes resource calibration, verifier repairs, and task versioning; those concerns motivate the paired reference/no-op checks and explicit backend here. Gymforge's small synthetic tasks are not Terminal-Bench tasks and its scores are not comparable to that benchmark. [Harbor](https://www.tbench.ai/news/announcement-2-0) supplies a broader container-based agent evaluation and optimization framework; gymforge concentrates on inspectable procedural task families.
 
-1. Create a new file, e.g. `gymforge/envs/myenv/my_env.py`.
-2. Subclass `BaseEnvironment` and implement `reset`, `step`, `render`, and `task_spec`.
-3. Register it in the global registry:
-
-```python
-from gymforge.core.registry import register
-from gymforge.envs.myenv.my_env import MyEnvironment
-
-register("myenv", MyEnvironment, version="v1")
-```
-
-4. Optionally add `__init__.py` re-exports and register it in `gymforge/envs/__init__.py`.
-
----
-
-## Adding a task template
-
-Create a YAML file in `gymforge/templates/`:
-
-```yaml
-name: my_task
-domain: terminal
-description_template: "Do {action} on {filename}"
-difficulty_base: 0.3
-slots:
-  filename:
-    type: choice
-    options: [data.txt, log.txt, output.txt]
-  action:
-    type: choice
-    options: [count lines in, search for errors in, summarize]
-  n_lines:
-    type: int_range
-    min: 10
-    max: 100
-scaffolding_template: "Create {filename} with {n_lines} lines"
-success_criteria_template:
-  exit_code: 0
-```
-
-Supported slot types: `choice`, `int_range`, `float_range`, `bool`.
-
-The template is auto-discovered on `TaskGenerator` instantiation — no registration needed.
-
----
-
-## Running benchmarks
+## Development
 
 ```bash
-# Generate tasks and report difficulty distribution
+pytest -q
+gymforge --help
 python benchmarks/difficulty_distribution.py
 ```
 
-This generates 100+ tasks across difficulty targets 0.1–0.9 and prints a rich table comparing requested vs actual difficulty scores by band.
+`benchmarks/difficulty_distribution.py` describes heuristic labels only. Changes to templates, dynamics, verifiers, or execution limits require regenerating manifests and rerunning integrity checks. No paid inference is needed for the test suite.
 
----
-
-## Running tests
-
-```bash
-make test
-# or
-pytest tests/ -v
-```
-
----
-
-## License
-
-MIT
+License: MIT.

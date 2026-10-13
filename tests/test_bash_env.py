@@ -36,7 +36,7 @@ def make_task(
 
 def test_reset_creates_workdir():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     obs = env.reset()
     assert obs["cwd"] is not None
     assert os.path.isdir(obs["cwd"])
@@ -45,7 +45,7 @@ def test_reset_creates_workdir():
 
 def test_reset_returns_empty_stdout():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     obs = env.reset()
     assert obs["stdout"] == ""
     assert obs["stderr"] == ""
@@ -55,7 +55,7 @@ def test_reset_returns_empty_stdout():
 
 def test_reset_creates_fresh_workdir_on_second_call():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     obs1 = env.reset()
     workdir1 = obs1["cwd"]
     obs2 = env.reset()
@@ -73,7 +73,7 @@ def test_reset_creates_fresh_workdir_on_second_call():
 
 def test_step_captures_stdout():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("echo hello")
     assert "hello" in obs["stdout"]
@@ -82,7 +82,7 @@ def test_step_captures_stdout():
 
 def test_step_captures_stderr():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("echo error_msg >&2")
     assert "error_msg" in obs["stderr"]
@@ -91,7 +91,7 @@ def test_step_captures_stderr():
 
 def test_step_captures_exit_code_zero():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("true")
     assert obs["exit_code"] == 0
@@ -100,7 +100,7 @@ def test_step_captures_exit_code_zero():
 
 def test_step_captures_nonzero_exit_code():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("false")
     assert obs["exit_code"] != 0
@@ -116,7 +116,7 @@ def test_scaffolding_creates_files():
     task = make_task(
         scaffolding={"files": {"hello.txt": "world\n"}}
     )
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, _, _, _ = env.step("cat hello.txt")
     assert "world" in obs["stdout"]
@@ -127,7 +127,7 @@ def test_scaffolding_creates_nested_files():
     task = make_task(
         scaffolding={"files": {"subdir/nested.txt": "nested content\n"}}
     )
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, _, _, _ = env.step("cat subdir/nested.txt")
     assert "nested content" in obs["stdout"]
@@ -141,7 +141,7 @@ def test_scaffolding_creates_nested_files():
 
 def test_timeout_returns_error_obs():
     task = make_task()
-    env = BashEnvironment(task, timeout=1)
+    env = BashEnvironment(task, backend="unsafe-local", timeout=1)
     env.reset()
     obs, reward, done, info = env.step("sleep 10")
     assert obs["exit_code"] == -1
@@ -159,7 +159,7 @@ def test_success_expected_output_match():
         success_criteria={"expected_output": "42"},
         scaffolding={"files": {"nums.txt": "1\n2\n3\n" * 14}},
     )
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("echo 42")
     assert reward == 1.0
@@ -169,7 +169,7 @@ def test_success_expected_output_match():
 
 def test_success_expected_output_no_match():
     task = make_task(success_criteria={"expected_output": "99"})
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("echo 42")
     assert reward == 0.0
@@ -179,7 +179,7 @@ def test_success_expected_output_no_match():
 
 def test_success_exit_code_criterion():
     task = make_task(success_criteria={"exit_code": 0})
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("true")
     assert reward == 1.0
@@ -189,7 +189,7 @@ def test_success_exit_code_criterion():
 
 def test_success_exit_code_nonzero_criterion():
     task = make_task(success_criteria={"exit_code": 1})
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     obs, reward, done, info = env.step("false")
     assert reward == 1.0
@@ -203,7 +203,7 @@ def test_success_exit_code_nonzero_criterion():
 
 def test_close_removes_workdir():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     obs = env.reset()
     workdir = obs["cwd"]
     env.close()
@@ -212,7 +212,7 @@ def test_close_removes_workdir():
 
 def test_close_is_idempotent():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     env.close()
     env.close()  # Should not raise
@@ -225,7 +225,7 @@ def test_close_is_idempotent():
 
 def test_seed_sets_attribute():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.seed(123)
     assert env._seed == 123
     env.close()
@@ -241,7 +241,7 @@ def test_multi_step_episode():
         success_criteria={"expected_output": "done"},
         max_steps=5,
     )
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     for _ in range(3):
         obs, reward, done, info = env.step("echo nope")
@@ -259,7 +259,7 @@ def test_multi_step_episode():
 
 def test_render_returns_string():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     env.reset()
     result = env.render()
     assert isinstance(result, str)
@@ -274,7 +274,7 @@ def test_render_returns_string():
 
 def test_task_spec_property():
     task = make_task(name="myname")
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     assert env.task_spec is task
     env.close()
 
@@ -286,6 +286,6 @@ def test_task_spec_property():
 
 def test_step_without_reset_raises():
     task = make_task()
-    env = BashEnvironment(task)
+    env = BashEnvironment(task, backend="unsafe-local")
     with pytest.raises(RuntimeError):
         env.step("echo hi")

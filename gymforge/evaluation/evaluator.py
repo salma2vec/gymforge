@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Callable, Type
 
@@ -57,19 +57,23 @@ class Evaluator:
         agent_fn: AgentFn,
         n_episodes: int = 5,
         max_workers: int = 4,
+        seed: int = 42,
+        env_kwargs: dict | None = None,
     ) -> EvaluationReport:
         """Run *n_episodes* rollouts in parallel and return an ``EvaluationReport``.
 
         Each episode runs in a separate thread. *agent_fn* receives the current
         observation dict and returns an action string.
         """
+        if n_episodes < 1 or max_workers < 1:
+            raise ValueError("n_episodes and max_workers must be positive")
         results: list[EpisodeResult] = []
         with ThreadPoolExecutor(max_workers=min(max_workers, n_episodes)) as pool:
             futures = [
-                pool.submit(self._run_episode, env_cls, task_spec, agent_fn)
-                for _ in range(n_episodes)
+                pool.submit(self._run_episode, env_cls, task_spec, agent_fn, seed + i, env_kwargs)
+                for i in range(n_episodes)
             ]
-            for future in as_completed(futures):
+            for future in futures:
                 results.append(future.result())
 
         success_rate = sum(r.success for r in results) / len(results)
@@ -98,8 +102,7 @@ class Evaluator:
         Returns one ``EvaluationReport`` per task.
         """
         return [
-            self.evaluate(env_cls, spec, agent_fn, n_episodes, max_workers)
-            for spec in task_specs
+            self.evaluate(env_cls, spec, agent_fn, n_episodes, max_workers) for spec in task_specs
         ]
 
     # ------------------------------------------------------------------
@@ -111,9 +114,18 @@ class Evaluator:
         env_cls: Type[BaseEnvironment],
         task_spec: TaskSpec,
         agent_fn: AgentFn,
+        seed: int = 42,
+        env_kwargs: dict | None = None,
     ) -> EpisodeResult:
         """Run a single episode and return a structured result."""
-        env = env_cls(task_spec)
+        env = env_cls(task_spec, **(env_kwargs or {}))
+        env.seed(seed)
+        try:
+            return self._rollout(env, task_spec, agent_fn)
+        finally:
+            env.close()
+
+    def _rollout(self, env, task_spec, agent_fn):
         obs = env.reset()
         total_reward = 0.0
         steps = 0
@@ -141,7 +153,7 @@ class Evaluator:
 
         env.close()
 
-        success = done and last_reward > 0.0
+        success = bool(info.get("success", done and last_reward >= 1.0))
         return EpisodeResult(
             task_id=task_spec.id,
             success=success,

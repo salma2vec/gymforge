@@ -7,6 +7,8 @@ import subprocess
 from dataclasses import dataclass, field
 
 from gymforge.core.task import TaskSpec
+from gymforge.core.execution import run_command, workspace_path
+from gymforge.evaluation.oracle import OracleChecker
 
 
 @dataclass
@@ -80,8 +82,9 @@ class RubricChecker:
     ``exit_code``, ``oracle_command``, ``file_contains``.
     """
 
-    def __init__(self, timeout: int = 10) -> None:
+    def __init__(self, timeout: int = 10, backend: str = "docker") -> None:
         self._timeout = timeout
+        self.backend = backend
 
     def check(
         self,
@@ -99,7 +102,14 @@ class RubricChecker:
 
         items = []
         for criterion in rubric:
-            item = self._evaluate_criterion(criterion, workdir, stdout, exit_code)
+            try:
+                item = self._evaluate_criterion(criterion, workdir, stdout, exit_code)
+            except (OSError, ValueError):
+                item = RubricItem(
+                    name=criterion.get("name", "invalid"),
+                    weight=1.0,
+                    detail="invalid workspace criterion",
+                )
             items.append(item)
         return RubricResult(items=items)
 
@@ -120,57 +130,86 @@ class RubricChecker:
         weight = float(criterion.get("weight", 1.0))
 
         if ctype == "file_exists":
-            path = os.path.join(workdir, criterion.get("path", ""))
+            path = workspace_path(workdir, criterion.get("path", ""))
             passed = os.path.isfile(path)
-            return RubricItem(name=name, weight=weight, passed=passed,
-                              score=1.0 if passed else 0.0,
-                              detail=f"{'found' if passed else 'missing'}: {criterion.get('path')}")
+            return RubricItem(
+                name=name,
+                weight=weight,
+                passed=passed,
+                score=1.0 if passed else 0.0,
+                detail=f"{'found' if passed else 'missing'}: {criterion.get('path')}",
+            )
 
         elif ctype == "file_contains":
-            path = os.path.join(workdir, criterion.get("path", ""))
+            path = workspace_path(workdir, criterion.get("path", ""))
             if not os.path.isfile(path):
-                return RubricItem(name=name, weight=weight, passed=False,
-                                  score=0.0, detail=f"file not found: {criterion.get('path')}")
+                return RubricItem(
+                    name=name,
+                    weight=weight,
+                    passed=False,
+                    score=0.0,
+                    detail=f"file not found: {criterion.get('path')}",
+                )
+            if path.stat().st_size > 1_048_576:
+                return RubricItem(
+                    name=name, weight=weight, detail="file exceeds verification limit"
+                )
             with open(path) as fh:
                 content = fh.read()
             expected = criterion.get("expected", "")
             passed = expected in content
-            return RubricItem(name=name, weight=weight, passed=passed,
-                              score=1.0 if passed else 0.0,
-                              detail=f"looking for {expected!r}")
+            return RubricItem(
+                name=name,
+                weight=weight,
+                passed=passed,
+                score=1.0 if passed else 0.0,
+                detail=f"looking for {expected!r}",
+            )
 
         elif ctype == "output_contains":
             expected = str(criterion.get("expected", "")).strip()
             passed = expected in stdout.strip()
-            return RubricItem(name=name, weight=weight, passed=passed,
-                              score=1.0 if passed else 0.0,
-                              detail=f"looking for {expected!r} in stdout")
+            return RubricItem(
+                name=name,
+                weight=weight,
+                passed=passed,
+                score=1.0 if passed else 0.0,
+                detail=f"looking for {expected!r} in stdout",
+            )
 
         elif ctype == "exit_code":
             expected_code = int(criterion.get("expected", 0))
             passed = exit_code == expected_code
-            return RubricItem(name=name, weight=weight, passed=passed,
-                              score=1.0 if passed else 0.0,
-                              detail=f"exit_code={exit_code} (expected {expected_code})")
+            return RubricItem(
+                name=name,
+                weight=weight,
+                passed=passed,
+                score=1.0 if passed else 0.0,
+                detail=f"exit_code={exit_code} (expected {expected_code})",
+            )
 
         elif ctype == "oracle_command":
             cmd = criterion.get("command", "")
             expected = str(criterion.get("expected", "")).strip()
             try:
-                result = subprocess.run(
-                    cmd, shell=True, cwd=workdir,
-                    capture_output=True, text=True, timeout=self._timeout,
-                )
+                result = run_command(cmd, workdir, self._timeout, self.backend)
                 actual = result.stdout.strip()
-                passed = expected in actual if expected else result.returncode == 0
+                passed = result.returncode == 0 and (not expected or expected == actual)
             except subprocess.TimeoutExpired:
-                return RubricItem(name=name, weight=weight, passed=False,
-                                  score=0.0, detail="oracle timed out")
-            return RubricItem(name=name, weight=weight, passed=passed,
-                              score=1.0 if passed else 0.0, detail=actual)
+                return RubricItem(
+                    name=name, weight=weight, passed=False, score=0.0, detail="oracle timed out"
+                )
+            return RubricItem(
+                name=name, weight=weight, passed=passed, score=1.0 if passed else 0.0, detail=actual
+            )
 
-        return RubricItem(name=name, weight=weight, passed=False,
-                          score=0.0, detail=f"unknown criterion type: {ctype!r}")
+        return RubricItem(
+            name=name,
+            weight=weight,
+            passed=False,
+            score=0.0,
+            detail=f"unknown criterion type: {ctype!r}",
+        )
 
     def _binary_check(
         self,
@@ -180,14 +219,9 @@ class RubricChecker:
         exit_code: int,
     ) -> RubricItem:
         """Simple fallback when no rubric list is defined."""
-        criteria = task_spec.success_criteria
-        if "expected_output" in criteria:
-            passed = criteria["expected_output"].strip() in stdout.strip()
-            return RubricItem(name="expected_output", weight=1.0, passed=passed,
-                              score=1.0 if passed else 0.0)
-        if "exit_code" in criteria:
-            passed = exit_code == criteria["exit_code"]
-            return RubricItem(name="exit_code", weight=1.0, passed=passed,
-                              score=1.0 if passed else 0.0)
-        return RubricItem(name="no_criteria", weight=1.0, passed=False,
-                          score=0.0, detail="no evaluable criteria")
+        passed, score, detail = OracleChecker(self._timeout, self.backend).check(
+            task_spec, workdir, stdout, exit_code
+        )
+        return RubricItem(
+            name="all_criteria", weight=1.0, passed=passed, score=score, detail=detail
+        )

@@ -1,124 +1,84 @@
-"""OracleChecker: ground-truth answer verification for task success."""
+"""Conjunctive task verification. Unknown criteria fail closed."""
 
 from __future__ import annotations
 
 import hashlib
-import subprocess
 
+from gymforge.core.execution import run_command, workspace_path
 from gymforge.core.task import TaskSpec
 
 
 class OracleChecker:
-    """Evaluates task success against ground-truth criteria.
-
-    Supports three verification modes, determined by the keys present in
-    ``task_spec.success_criteria``:
-
-    - ``oracle_command``: runs a shell command in the workspace and matches
-      the output against ``oracle_expected``.
-    - ``expected_output``: substring match against the agent's stdout.
-    - ``exit_code``: exact match against the agent's exit code.
-
-    Returns a three-tuple ``(passed: bool, score: float, detail: str)``.
-    """
-
-    def __init__(self, timeout: int = 10) -> None:
-        self._timeout = timeout
+    def __init__(self, timeout: int = 10, backend: str = "docker") -> None:
+        self._timeout, self.backend = timeout, backend
 
     def check(
-        self,
-        task_spec: TaskSpec,
-        workdir: str,
-        stdout: str,
-        exit_code: int,
+        self, task_spec: TaskSpec, workdir: str, stdout: str, exit_code: int
     ) -> tuple[bool, float, str]:
-        """Evaluate the agent's final state against the task success criteria.
-
-        Returns ``(passed, score, detail)`` where *score* is ``1.0`` on
-        full success and ``0.0`` on failure, and *detail* is a diagnostic
-        string.
-        """
-        criteria = task_spec.success_criteria
-        if not criteria:
-            return False, 0.0, "no criteria defined"
-
-        if "oracle_command" in criteria:
-            return self._check_oracle_command(criteria, workdir)
-
-        if "expected_output" in criteria:
-            expected = criteria["expected_output"].strip()
-            passed = expected in stdout.strip()
-            detail = f"expected '{expected}' in stdout"
-            return passed, 1.0 if passed else 0.0, detail
-
-        if "exit_code" in criteria:
-            passed = exit_code == criteria["exit_code"]
-            detail = f"expected exit_code={criteria['exit_code']}, got {exit_code}"
-            return passed, 1.0 if passed else 0.0, detail
-
-        return False, 0.0, "unrecognised criteria keys"
-
-    def check_file(
-        self,
-        task_spec: TaskSpec,
-        workdir: str,
-    ) -> tuple[bool, float, str]:
-        """Evaluate file-system criteria from ``task_spec.success_criteria``.
-
-        Looks for ``expected_file``, ``expected_file_content``, and
-        ``expected_file_hash`` keys.
-        """
-        import os
-
-        criteria = task_spec.success_criteria
-        expected_file = criteria.get("expected_file")
-        if not expected_file:
-            return False, 0.0, "no expected_file criterion"
-
-        path = os.path.join(workdir, expected_file)
-        if not os.path.isfile(path):
-            return False, 0.0, f"file '{expected_file}' does not exist"
-
-        if "expected_file_hash" in criteria:
-            with open(path, "rb") as fh:
-                digest = hashlib.md5(fh.read()).hexdigest()
-            passed = digest == criteria["expected_file_hash"]
-            return passed, 1.0 if passed else 0.0, f"md5={digest}"
-
-        if "expected_file_content" in criteria:
-            with open(path) as fh:
-                content = fh.read()
-            substr = criteria["expected_file_content"].strip()
-            passed = substr in content
-            return passed, 1.0 if passed else 0.0, f"looking for '{substr}'"
-
-        return True, 1.0, f"file '{expected_file}' exists"
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _check_oracle_command(
-        self,
-        criteria: dict,
-        workdir: str,
-    ) -> tuple[bool, float, str]:
-        """Run the oracle command and compare its output to the expected value."""
-        cmd = criteria["oracle_command"]
-        expected = criteria.get("oracle_expected", "").strip()
-        try:
-            result = subprocess.run(
-                cmd,
-                shell=True,
-                cwd=workdir,
-                capture_output=True,
-                text=True,
-                timeout=self._timeout,
+        c = task_spec.success_criteria
+        known = {
+            "expected_output",
+            "exit_code",
+            "oracle_command",
+            "oracle_expected",
+            "expected_file",
+            "expected_file_content",
+            "expected_file_exact",
+            "expected_file_hash",
+            "expected_file_executable",
+            "script_cases",
+        }
+        if not c or set(c) - known:
+            return False, 0.0, "missing or unrecognised success criteria"
+        checks = []
+        if "expected_output" in c:
+            checks.append(exit_code == 0 and str(c["expected_output"]).strip() == stdout.strip())
+        if "exit_code" in c:
+            checks.append(exit_code == int(c["exit_code"]))
+        if "expected_file" in c:
+            checks.append(self.check_file(task_spec, workdir)[0])
+        if "oracle_command" in c:
+            result = run_command(c["oracle_command"], workdir, self._timeout, self.backend)
+            checks.append(
+                result.returncode == 0
+                and (
+                    "oracle_expected" not in c
+                    or result.stdout.strip() == str(c["oracle_expected"]).strip()
+                )
             )
-            actual = result.stdout.strip()
-            passed = expected in actual if expected else result.returncode == 0
-            return passed, 1.0 if passed else 0.0, actual
-        except subprocess.TimeoutExpired:
-            return False, 0.0, f"oracle command timed out after {self._timeout}s"
-        except Exception as exc:  # noqa: BLE001
-            return False, 0.0, f"oracle command error: {exc}"
+        if "script_cases" in c:
+            for case in c["script_cases"]:
+                result = run_command(case["command"], workdir, self._timeout, self.backend)
+                checks.append(
+                    result.returncode == 0
+                    and result.stdout.strip() == str(case["expected"]).strip()
+                )
+        passed = bool(checks) and all(checks)
+        return (
+            passed,
+            float(passed),
+            "all criteria satisfied" if passed else "criteria not satisfied",
+        )
+
+    def check_file(self, task_spec: TaskSpec, workdir: str) -> tuple[bool, float, str]:
+        c = task_spec.success_criteria
+        if "expected_file" not in c:
+            return False, 0.0, "no expected_file criterion"
+        try:
+            path = workspace_path(workdir, c["expected_file"])
+            if not path.is_file() or path.stat().st_size > 1_048_576:
+                return False, 0.0, "file absent or exceeds verification limit"
+            data = path.read_bytes()
+            checks = []
+            if "expected_file_exact" in c:
+                checks.append(data == c["expected_file_exact"].encode())
+            if "expected_file_content" in c:
+                checks.append(c["expected_file_content"].encode() in data)
+            if "expected_file_hash" in c:
+                checks.append(hashlib.md5(data).hexdigest() == c["expected_file_hash"])
+            if c.get("expected_file_executable"):
+                checks.append(bool(path.stat().st_mode & 0o111))
+            passed = all(checks)
+            return passed, float(passed), "file criteria checked"
+        except (OSError, ValueError):
+            return False, 0.0, "invalid workspace file"

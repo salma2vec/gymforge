@@ -24,6 +24,16 @@ class TaskSpec:
     metadata: dict = field(default_factory=dict)
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
+    def __post_init__(self):
+        if self.domain not in {"terminal", "editor", "workflow"}:
+            raise ValueError("Unsupported task domain")
+        if not isinstance(self.max_steps, int) or not 1 <= self.max_steps <= 1000:
+            raise ValueError("max_steps must be an integer in [1, 1000]")
+        if not isinstance(self.difficulty, (int, float)) or not 0 <= self.difficulty <= 1:
+            raise ValueError("difficulty must be in [0, 1]")
+        if not isinstance(self.scaffolding, dict) or not isinstance(self.success_criteria, dict):
+            raise ValueError("scaffolding and success_criteria must be objects")
+
     def to_dict(self) -> dict:
         """Serialize the TaskSpec to a plain dict suitable for JSON encoding."""
         return {

@@ -3,7 +3,9 @@
 import pytest
 
 from gymforge.core.task import TaskSpec
-from gymforge.envs.terminal.bash_env import BashEnvironment
+from gymforge.envs.terminal.bash_env import BashEnvironment as _BashEnvironment
+from functools import partial
+BashEnvironment = partial(_BashEnvironment, backend="unsafe-local")
 from gymforge.evaluation.evaluator import Evaluator, EvaluationReport
 from gymforge.evaluation.oracle import OracleChecker
 from gymforge.evaluation.rubric import RubricChecker, RubricResult
@@ -131,7 +133,7 @@ def test_report_str_representation():
 
 def test_oracle_checker_expected_output_pass(tmp_path):
     task = make_task(success_criteria={"expected_output": "42"})
-    checker = OracleChecker()
+    checker = OracleChecker(backend="unsafe-local")
     passed, score, detail = checker.check(task, str(tmp_path), stdout="42\n", exit_code=0)
     assert passed is True
     assert score == 1.0
@@ -139,7 +141,7 @@ def test_oracle_checker_expected_output_pass(tmp_path):
 
 def test_oracle_checker_expected_output_fail(tmp_path):
     task = make_task(success_criteria={"expected_output": "99"})
-    checker = OracleChecker()
+    checker = OracleChecker(backend="unsafe-local")
     passed, score, detail = checker.check(task, str(tmp_path), stdout="42\n", exit_code=0)
     assert passed is False
     assert score == 0.0
@@ -147,7 +149,7 @@ def test_oracle_checker_expected_output_fail(tmp_path):
 
 def test_oracle_checker_exit_code(tmp_path):
     task = make_task(success_criteria={"exit_code": 0})
-    checker = OracleChecker()
+    checker = OracleChecker(backend="unsafe-local")
     passed, score, _ = checker.check(task, str(tmp_path), stdout="", exit_code=0)
     assert passed is True
 
@@ -156,14 +158,14 @@ def test_oracle_checker_file_exists(tmp_path):
     out_file = tmp_path / "result.txt"
     out_file.write_text("some output")
     task = make_task(success_criteria={"expected_file": "result.txt"})
-    checker = OracleChecker()
+    checker = OracleChecker(backend="unsafe-local")
     passed, score, detail = checker.check_file(task, str(tmp_path))
     assert passed is True
 
 
 def test_oracle_checker_file_missing(tmp_path):
     task = make_task(success_criteria={"expected_file": "missing.txt"})
-    checker = OracleChecker()
+    checker = OracleChecker(backend="unsafe-local")
     passed, score, detail = checker.check_file(task, str(tmp_path))
     assert passed is False
 
@@ -176,7 +178,7 @@ def test_oracle_checker_file_missing(tmp_path):
 def test_rubric_checker_single_criterion_pass(tmp_path):
     task = make_task(success_criteria={"expected_output": "hello"})
     checker = RubricChecker()
-    result = checker.check(task, str(tmp_path), stdout="hello world", exit_code=0)
+    result = checker.check(task, str(tmp_path), stdout="hello", exit_code=0)
     assert isinstance(result, RubricResult)
     assert result.total_score == pytest.approx(1.0)
 
