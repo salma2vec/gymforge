@@ -34,6 +34,11 @@ class EditorEnvironment(BaseEnvironment):
     - ``expected_file``: the file must exist.
     - ``expected_file_content``: a substring that must appear in the file.
     - ``expected_file_exact``: the file content must exactly match.
+    - ``expected_file_hash``: the file's MD5 digest must match.
+    - ``expected_file_executable``: if true, the file must have an executable bit.
+
+    ``expected_file`` is required. Other criterion keys and invalid value types
+    fail closed; editor verification never runs commands.
     """
 
     def __init__(self, task_spec: TaskSpec, timeout: int = 10) -> None:
@@ -245,5 +250,17 @@ class EditorEnvironment(BaseEnvironment):
                 fh.write(content)
 
     def _check_success(self) -> bool:
-        """Evaluate the workspace against the task success criteria."""
+        """Validate the complete file-only schema before evaluating its criteria."""
+        criteria = self.task_spec.success_criteria
+        supported = {
+            "expected_file": str,
+            "expected_file_content": str,
+            "expected_file_exact": str,
+            "expected_file_hash": str,
+            "expected_file_executable": bool,
+        }
+        if "expected_file" not in criteria or set(criteria) - supported.keys():
+            return False
+        if any(not isinstance(value, supported[key]) for key, value in criteria.items()):
+            return False
         return OracleChecker().check_file(self.task_spec, self.workdir)[0]

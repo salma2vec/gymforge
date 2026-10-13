@@ -1,5 +1,6 @@
 """Regression tests for scoring, confinement and experiment lifecycle."""
 
+import hashlib
 import json
 import os
 import shutil
@@ -92,6 +93,81 @@ def test_editor_rejects_sibling_prefix_and_symlink(tmp_path):
     finally:
         env.close()
         shutil.rmtree(sibling)
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"unknown_required_check": True},
+        {"expected_output": "hello"},
+        {"exit_code": 0},
+        {"oracle_command": "true"},
+        {"oracle_expected": "hello"},
+        {"script_cases": [{"command": "true", "expected": ""}]},
+        {"rubric": []},
+    ],
+)
+def test_editor_rejects_unsupported_criteria_even_when_file_matches(extra):
+    criteria = {"expected_file": "answer.txt", "expected_file_exact": "hello", **extra}
+    env = EditorEnvironment(task(success_criteria=criteria))
+    try:
+        env.reset()
+        with patch("gymforge.evaluation.oracle.run_command") as run:
+            _, reward, done, _ = env.step(
+                json.dumps({"op": "write", "path": "answer.txt", "content": "hello"})
+            )
+        assert reward == 0.0 and not done
+        run.assert_not_called()
+    finally:
+        env.close()
+
+
+@pytest.mark.parametrize(
+    "criteria",
+    [
+        {},
+        {"expected_file_exact": "hello"},
+        {"expected_file": 1},
+        {"expected_file": "answer.txt", "expected_file_exact": ["hello"]},
+        {"expected_file": "answer.txt", "expected_file_content": None},
+        {"expected_file": "answer.txt", "expected_file_hash": 1},
+        {"expected_file": "answer.txt", "expected_file_executable": "false"},
+    ],
+)
+def test_editor_rejects_invalid_file_criterion_schema(criteria):
+    env = EditorEnvironment(task(success_criteria=criteria))
+    try:
+        env.reset()
+        _, reward, done, _ = env.step(
+            json.dumps({"op": "write", "path": "answer.txt", "content": "hello"})
+        )
+        assert reward == 0.0 and not done
+    finally:
+        env.close()
+
+
+def test_editor_checks_all_supported_file_criteria_without_commands():
+    criteria = {
+        "expected_file": "answer.txt",
+        "expected_file_exact": "hello",
+        "expected_file_content": "ell",
+        "expected_file_hash": hashlib.md5(b"hello").hexdigest(),
+        "expected_file_executable": True,
+    }
+    env = EditorEnvironment(task(success_criteria=criteria))
+    try:
+        env.reset()
+        with patch("gymforge.evaluation.oracle.run_command") as run:
+            _, reward, done, _ = env.step(
+                json.dumps({"op": "write", "path": "answer.txt", "content": "hello"})
+            )
+            assert reward == 0.0 and not done
+            Path(env.workdir, "answer.txt").chmod(0o700)
+            _, reward, done, _ = env.step(json.dumps({"op": "list"}))
+            assert reward == 1.0 and done
+        run.assert_not_called()
+    finally:
+        env.close()
 
 
 def test_local_execution_does_not_inherit_secret(monkeypatch, tmp_path):

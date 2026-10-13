@@ -79,7 +79,7 @@ finally:
 
 ## Verifiers and reproducibility
 
-All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown binary criterion keys fail closed. Rubrics explicitly support partial credit and `output_contains` when a substring is intended.
+All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown binary criterion keys fail closed. The editor requires `expected_file` and accepts only file criteria with valid value types; it rejects command, output, and rubric criteria. Rubrics explicitly support partial credit and `output_contains` when a substring is intended.
 
 Generated files and answers agree: replacement tasks check both the count and edited content; CSV tasks compare a canonical sorted/deduplicated output; script tasks execute multiple argument cases. Output-only tasks still admit answer guessing, and script cases are public. These fixtures are not a hidden test set or a proof against adversarial reward hacking.
 
