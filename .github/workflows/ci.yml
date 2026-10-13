@@ -20,4 +20,9 @@ jobs:
           python-version: "3.11"
       - run: python -m pip install -e ".[dev]"
       - run: python -m pytest -q
+      - name: Verify container isolation and task scoring
+        run: |
+          docker pull python:3.12-slim
+          GYMFORGE_TEST_DOCKER=1 python -m pytest tests/test_integrity.py -q
+          gymforge verify --n 25 --seed 42 --backend docker --out /tmp/gymforge-docker-integrity.json
       - run: python -m pip wheel . --no-deps --wheel-dir dist
