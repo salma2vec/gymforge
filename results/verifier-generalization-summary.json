@@ -1,0 +1,130 @@
+{
+  "protocol": "sum-script-generalization-v1",
+  "python": "3.14.2",
+  "source_commit": "0c073806e5262efa5cfb70f72d7bfc5b8a4b47d5",
+  "source_hashes": {
+    "benchmarks/verifier_generalization.py": "5f1e811fe501a5abf2431e6a7bc2087dc2bc0bdce89a929ee01b831f7e3112a0",
+    "docs/VERIFIER_CHALLENGE.md": "9350a59adaef70848e8122a823defae04ef19a82a20fa72ae5278b6993d37c88",
+    "gymforge/__init__.py": "e912d91702062b0e8c34c795de3bd9ba145830566061c6d045c15c0ea98d33f8",
+    "gymforge/cli.py": "81ccfa1b05c53401bfbcce718e27f0f2080da86a7d3ec6c57f43ddb5e20f97c1",
+    "gymforge/core/__init__.py": "84ba3d2a87a93339eea1636839aa46949cb968d5ed2f22a973c9a45604a0277d",
+    "gymforge/core/environment.py": "4f361b963c97c5abedfc8c4eac69eb99e7814907424ede4b86af5d7ad848535e",
+    "gymforge/core/episode.py": "d4a6d7ceac3b65beb31acd2e37302c52db9fe1275b910158f5406342734d26de",
+    "gymforge/core/execution.py": "43b95356583222994b29909bb006d10c74387b9bb2217f349ae81e0906f5134a",
+    "gymforge/core/registry.py": "996bcec2c95c4bdcde6f083de5ee396f3d7d224b6b33bf7c8e63428a924b104f",
+    "gymforge/core/task.py": "37ce7d7f11f5ed15e6d8fd87f101b43e03f0c39e9c0d1a8ebef80a6de3e345ef",
+    "gymforge/envs/__init__.py": "8780b9668fddd57c8c911994f3eb04a2e7bfc999052b3f5f2273e9f14f702d38",
+    "gymforge/envs/editor/__init__.py": "dbf63cb52da7130f58dac85ae984ee69c8846cb2b2c8114fefb34e556e70689f",
+    "gymforge/envs/editor/editor_env.py": "afe3dc1987fef5608ae0c6f2bfae902b5778895e04352d59e2523f75eb071969",
+    "gymforge/envs/terminal/__init__.py": "464f3f42be32739dab1f8550d64fa8abfeea7e7c0aeaf37b37c06e8b7c732f22",
+    "gymforge/envs/terminal/bash_env.py": "40789f9bbeb859870c69f52ba839d44fd7e198746c0df1e09ace970859a6e2a2",
+    "gymforge/envs/terminal/fs_env.py": "b5ff22cd409f3063be716dc775a8b901a10dbe2b6c677ec0786ba2b6f9f220b4",
+    "gymforge/envs/workflow/__init__.py": "b1967a4f5b8bdd4b73e4e03ea3296ad3138b5d35850379608ead7933594e0f1a",
+    "gymforge/envs/workflow/pipeline_env.py": "b1478945c171f67b85b4b93b9d871dc38c565b5932a4a4b6b6e58cbbe9e48308",
+    "gymforge/evaluation/__init__.py": "e567330646dedee0ff510b7fa5883d5708662d85de7917ae0ede6d5a8c2bc7df",
+    "gymforge/evaluation/evaluator.py": "d82c4c2cd9669253abc9cd266e5124bdb668be1e201470bbaad2e7af6055d5cd",
+    "gymforge/evaluation/holdout.py": "30891e95948472706e47f6ef30d317bd1837345a6180f9be18494e273e5a241d",
+    "gymforge/evaluation/oracle.py": "e6c67bdacf01a16059ff3ded98d0e6e21ae7281a3a182ebcfa74d2d11dadd3ea",
+    "gymforge/evaluation/reference.py": "6771cfa5ef4077a108d43d4c5607787410281094fb164112b10dd6dcd5ec0c24",
+    "gymforge/evaluation/rubric.py": "45d04b8f92382b475274d7471ee97d8020c8264b0e457fcc6f69e5834e097934",
+    "gymforge/generation/__init__.py": "f6bb25d8b9bf9465e20fae84080652f70b295590503410affd672319375960b8",
+    "gymforge/generation/difficulty.py": "545393f22bfcf6ba13bbcd99f8a91a0e362f612bb25f0bc4a85bbf9adb8aa49f",
+    "gymforge/generation/diversity.py": "ade65eb48428e8a3b50ccbb61c5587f5beb9e6447ead84ee6ba27c49756ea702",
+    "gymforge/generation/task_generator.py": "bd2016f763c30868880d7a61478590360de409b9d326ebda9fc28fda8d1161f2",
+    "gymforge/templates/__init__.py": "f5230ca7d1ef3a159842b2fb840c4f2a3682dabb2d5911f5cf9364f08f86cb4b",
+    "gymforge/trace/__init__.py": "8ba0a8efa3438f6267abc235e3504b9a94111005e869fa6a49f7b9a6f2ec0412",
+    "gymforge/trace/recorder.py": "7821c6b3a83e78dd7adb7d34560b91046e696447fcd9f30d8c64e58eef433f97",
+    "gymforge/trace/replay.py": "b458ba4b5be04f89db55176644212727cf460bcb56a8022836239fe4a3caeff9"
+  },
+  "backend": "unsafe-local",
+  "summary": {
+    "legitimate_panels": 10,
+    "public_legitimate_passes": 10,
+    "heldout_legitimate_passes": 10,
+    "incorrect_panels": 45,
+    "public_false_accepts": 10,
+    "heldout_false_accepts": 0,
+    "gate_passed": true
+  },
+  "interpretation": "Descriptive acceptance of prespecified programs; repeated seeds of one algorithm are not independent adversarial samples. No learned-agent result.",
+  "raw_artifact_sha256": "72f0c724b6c531843cb952329f4c827fa5eb0c08714fc9bf86b52a9550216ca1",
+  "programs": {
+    "bash_loop": {
+      "legitimate": true,
+      "split": "legitimate",
+      "panels": 5,
+      "public_passes": 5,
+      "heldout_passes": 5
+    },
+    "python_sum": {
+      "legitimate": true,
+      "split": "legitimate",
+      "panels": 5,
+      "public_passes": 5,
+      "heldout_passes": 5
+    },
+    "noop": {
+      "legitimate": false,
+      "split": "control",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "public_lookup": {
+      "legitimate": false,
+      "split": "development",
+      "panels": 5,
+      "public_passes": 5,
+      "heldout_passes": 0
+    },
+    "constant_zero": {
+      "legitimate": false,
+      "split": "development",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "first_two": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "last_only": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "absolute_sum": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "positive_only": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "off_by_one": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 0,
+      "heldout_passes": 0
+    },
+    "three_only": {
+      "legitimate": false,
+      "split": "heldout_algorithm",
+      "panels": 5,
+      "public_passes": 5,
+      "heldout_passes": 0
+    }
+  }
+}
