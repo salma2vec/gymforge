@@ -101,7 +101,7 @@ File-hash observations traverse at most 1,000 workspace entries, hash at most
 1 MiB per file and 16 MiB in total, and report truncation when those limits apply.
 These observation limits do not impose a disk quota on the workspace.
 
-Containers share the host kernel. This is not a hardened multi-tenant service; run hostile workloads on a dedicated disposable VM with disk quotas. The writable workspace can consume host disk across many files. `unsafe-local` has no filesystem/network isolation even though inherited secrets are stripped and output/time are bounded. Editor path confinement assumes no concurrent hostile process changing workspace symlinks.
+Containers share the host kernel. This is not a hardened multi-tenant service; run hostile workloads on a dedicated disposable VM with disk quotas. The writable workspace can consume host disk across many files. `unsafe-local` has no filesystem/network isolation even though inherited secrets are stripped and output/time are bounded. Docker is the only supported backend for untrusted submissions. Editor path confinement assumes no concurrent hostile process changing workspace symlinks. The sealed verifier rejects symlinked and multi-linked submission files and rechecks bytes after each case, but a concurrent hostile process can still swap or self-modify and restore bytes between observations.
 
 Docker integration is opt-in:
 

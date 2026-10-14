@@ -13,6 +13,7 @@ import os
 import random
 import re
 import shlex
+import stat
 from pathlib import Path
 
 from gymforge.core.execution import run_command, workspace_path
@@ -98,23 +99,85 @@ def sealed_sum_script_cases(challenge_id: str, secret: bytes) -> list[list[int]]
 def _submission(task: TaskSpec, workdir: str) -> Path:
     if task.metadata.get("template") != "write_bash_script":
         raise ValueError("Holdout verifier supports only write_bash_script tasks")
-    return workspace_path(workdir, task.success_criteria.get("expected_file"))
+    relative = task.success_criteria.get("expected_file")
+    if not isinstance(relative, str) or Path(relative).is_absolute():
+        raise ValueError("Submission path must be relative")
+    leaf = Path(relative)
+    if leaf.name in ("", ".", ".."):
+        raise ValueError("Submission path must identify a file")
+    # Resolve and confine parent directories while preserving the final path
+    # component so the trusted reader can reject a symlink instead of following it.
+    parent = workspace_path(workdir, str(leaf.parent))
+    return parent / leaf.name
+
+
+def _read_submission(path: Path) -> bytes:
+    """Read one stable, executable, single-link regular file without following links."""
+    try:
+        before = os.lstat(path)
+        flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(path, flags)
+    except OSError as error:
+        raise ValueError("Submission must be an accessible non-symlink file") from error
+    try:
+        opened = os.fstat(descriptor)
+        current = os.lstat(path)
+        identity = (opened.st_dev, opened.st_ino)
+        if (
+            stat.S_ISLNK(before.st_mode)
+            or not stat.S_ISREG(opened.st_mode)
+            or not stat.S_ISREG(current.st_mode)
+            or opened.st_nlink != 1
+            or current.st_nlink != 1
+            or identity != (before.st_dev, before.st_ino)
+            or identity != (current.st_dev, current.st_ino)
+        ):
+            raise ValueError("Submission must be a stable single-link regular file")
+        if not opened.st_mode & 0o111:
+            raise ValueError("Submission must be executable")
+        if opened.st_size > 65536:
+            raise ValueError("Submission must be at most 65536 bytes")
+        chunks = []
+        total = 0
+        while total <= 65536:
+            chunk = os.read(descriptor, min(8192, 65537 - total))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            total += len(chunk)
+        if total > 65536:
+            raise ValueError("Submission must be at most 65536 bytes")
+        after = os.fstat(descriptor)
+        final = os.lstat(path)
+        if (
+            identity != (after.st_dev, after.st_ino)
+            or identity != (final.st_dev, final.st_ino)
+            or opened.st_size != after.st_size
+            or opened.st_mtime_ns != after.st_mtime_ns
+            or opened.st_mode != after.st_mode
+            or after.st_nlink != 1
+            or final.st_nlink != 1
+        ):
+            raise ValueError("Submission changed while it was being read")
+        return b"".join(chunks)
+    except OSError as error:
+        raise ValueError("Submission changed or became unreadable") from error
+    finally:
+        os.close(descriptor)
 
 
 def freeze_sum_script_submission(task: TaskSpec, workdir: str) -> str:
     """Hash an executable submission before the verifier secret is revealed."""
-    path = _submission(task, workdir)
-    if not path.is_file() or path.stat().st_size > 65536 or not os.access(path, os.X_OK):
-        raise ValueError("Submission must be an executable regular file of at most 65536 bytes")
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(_read_submission(_submission(task, workdir))).hexdigest()
 
 
 def _grade_cases(task: TaskSpec, workdir: str, cases: list[list[int]], result: dict,
                  backend: str, timeout: float, frozen_submission_sha256: str | None = None) -> dict:
     path = _submission(task, workdir)
-    if not path.is_file() or path.stat().st_size > 65536 or not os.access(path, os.X_OK):
-        return {**result, "error": "Missing, oversized or non-executable submission"}
-    original = path.read_bytes()
+    try:
+        original = _read_submission(path)
+    except ValueError as error:
+        return {**result, "error": str(error)}
     submission_sha256 = hashlib.sha256(original).hexdigest()
     result["submission_sha256"] = submission_sha256
     if frozen_submission_sha256 is not None and not hmac.compare_digest(
@@ -126,9 +189,14 @@ def _grade_cases(task: TaskSpec, workdir: str, cases: list[list[int]], result: d
         record = {"arguments": arguments, "expected": str(sum(arguments)), "passed": False}
         try:
             execution = run_command(command, workdir, timeout, backend)
-            unchanged = path.is_file() and path.stat().st_size <= 65536 and path.read_bytes() == original
             record.update(stdout=execution.stdout, stderr=execution.stderr,
-                          exit_code=execution.returncode, unchanged=unchanged)
+                          exit_code=execution.returncode)
+            try:
+                unchanged = _read_submission(path) == original
+            except ValueError as error:
+                unchanged = False
+                record["integrity_error"] = str(error)
+            record["unchanged"] = unchanged
             record["passed"] = (execution.returncode == 0 and unchanged
                                 and execution.stdout.strip() == record["expected"])
         except (OSError, RuntimeError, ValueError) as error:

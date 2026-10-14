@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -68,6 +69,28 @@ def test_submission_mutation_and_missing_script_fail_closed():
             grade_sum_script(spec, env.workdir, 17, "unsafe-local")
     finally:
         env.close()
+
+
+@pytest.mark.parametrize("kind", ["symlink", "hardlink"])
+def test_submission_links_are_rejected_before_execution(tmp_path, kind):
+    spec = task()
+    path = tmp_path / spec.success_criteria["expected_file"]
+    target = tmp_path / "target.sh"
+    target.write_text('#!/bin/bash\necho 0\n')
+    target.chmod(0o755)
+    if kind == "symlink":
+        path.symlink_to(target.name)
+    else:
+        os.link(target, path)
+
+    with patch("gymforge.evaluation.holdout.run_command") as run:
+        with pytest.raises(ValueError, match="single-link|non-symlink"):
+            freeze_sum_script_submission(spec, str(tmp_path))
+        result = grade_sum_script(spec, str(tmp_path), 17, "unsafe-local")
+        run.assert_not_called()
+    assert not result["accepted"]
+    assert result["cases"] == []
+    assert "file" in result["error"]
 
 
 def test_other_families_are_not_silently_reinterpreted():
