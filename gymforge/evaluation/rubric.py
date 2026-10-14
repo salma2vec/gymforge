@@ -146,8 +146,8 @@ class RubricChecker:
         weight = criterion.get("weight", 1.0)
         if (
             type(weight) not in (int, float)
-            or not math.isfinite(weight)
             or not 0 < weight <= 1_000_000
+            or not math.isfinite(weight)
         ):
             return False
         for key in ("name", "path", "command"):

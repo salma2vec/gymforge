@@ -53,6 +53,7 @@ def test_shell_oracle_rejects_incomplete_or_malformed_requirements(tmp_path, ext
         {"rubric": [{"type": "exit_code", "expected": 0, "weight": -1}]},
         {"rubric": [{"type": "exit_code", "expected": 0, "weight": float("inf")}]},
         {"rubric": [{"type": "exit_code", "expected": 0, "weight": float("nan")}]},
+        {"rubric": [{"type": "exit_code", "expected": 0, "weight": 10**1000}]},
         {"rubric": [{"type": "exit_code", "expected": 0}], "expected_file": "missing"},
         {"rubric": [{"type": "exit_code", "expected": 0, "required_check": False}]},
     ],
