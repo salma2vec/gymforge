@@ -2,7 +2,7 @@
 
 Procedural terminal-task generation and evaluation with explicit verifiers, seeded task manifests, and action traces. Five bundled task families cover counting, file discovery, replacement, CSV transformation, and script writing.
 
-This is a small research toolkit for studying task construction and verifier integrity. It does not include RL training, desktop/browser interaction, or published model scores. Difficulty labels are heuristic metadata, not calibrated human or model difficulty.
+This is a small research toolkit for studying task construction and verifier integrity. A six-task local-model editor pilot is recorded below; it produced valid actions but no successful transformations. It does not include RL training or desktop/browser interaction. Difficulty labels are heuristic metadata, not calibrated human or model difficulty.
 
 ## Install
 
@@ -78,6 +78,10 @@ finally:
 ```
 
 ## Verifiers and reproducibility
+
+The [literal artifact pilot](docs/LITERAL_AGENT_PILOT.md) gives a local Qwen2.5-Coder 0.5B model six derived editor tasks: three replacements and three CSV sorting/deduplication tasks. A strict adapter permits one bounded literal write to an allowed text file, then the existing editor checks exact contents. No generated commands or programs execute. **All six actions were valid, but zero tasks passed.** Every response finished normally; the failures were incorrect transformations, not truncation or JSON syntax. The model changed unrelated replacement text, retained old text, left duplicate rows, damaged a CSV header, or copied an input unchanged. All six reference controls passed and all no-ops failed. [Summary and full transcripts](results/literal-agent-summary.json).
+
+This is a negative, fixed-panel capability result for one small model. The editor variants remove terminal-specific output requirements and cannot establish full terminal success, RL progress or a calibrated difficulty scale. The recorded source hashes and all six outcomes were replayed offline without new inference. A stronger-model comparison must be separately frozen and retain this failed pilot.
 
 All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown keys, invalid types, and orphan requirements (such as file content without a file path) fail closed before verifier commands run. The editor requires `expected_file` and accepts only file criteria with valid value types; it rejects command, output, and rubric criteria. Rubrics explicitly support partial credit and `output_contains` when a substring is intended; each item needs an explicit type and its required fields, and rubric and binary criteria cannot be mixed. Pipelines retain earned stage credit but also require any declared final binary criteria before reporting success.
 

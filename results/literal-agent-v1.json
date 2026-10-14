@@ -1,0 +1,650 @@
+{
+  "protocol": "literal-artifact-agent-v1",
+  "python": "3.14.2",
+  "source_commit": "210ac0a34f813d9c9ce084ec00b0d1a0e81db6d4",
+  "source_hashes": {
+    "benchmarks/literal_agent.py": "2c4739008a2ad097bf4396047c4bc75acedb07788bd0656546988d5132883c70",
+    "docs/LITERAL_AGENT_PILOT.md": "1f07118a29d1b8f1cf370c2addf7cecf83c72e205ac7dd2c438267fc1892c674",
+    "gymforge/__init__.py": "e912d91702062b0e8c34c795de3bd9ba145830566061c6d045c15c0ea98d33f8",
+    "gymforge/cli.py": "81ccfa1b05c53401bfbcce718e27f0f2080da86a7d3ec6c57f43ddb5e20f97c1",
+    "gymforge/core/__init__.py": "84ba3d2a87a93339eea1636839aa46949cb968d5ed2f22a973c9a45604a0277d",
+    "gymforge/core/environment.py": "4f361b963c97c5abedfc8c4eac69eb99e7814907424ede4b86af5d7ad848535e",
+    "gymforge/core/episode.py": "d4a6d7ceac3b65beb31acd2e37302c52db9fe1275b910158f5406342734d26de",
+    "gymforge/core/execution.py": "43b95356583222994b29909bb006d10c74387b9bb2217f349ae81e0906f5134a",
+    "gymforge/core/registry.py": "996bcec2c95c4bdcde6f083de5ee396f3d7d224b6b33bf7c8e63428a924b104f",
+    "gymforge/core/task.py": "37ce7d7f11f5ed15e6d8fd87f101b43e03f0c39e9c0d1a8ebef80a6de3e345ef",
+    "gymforge/envs/__init__.py": "8780b9668fddd57c8c911994f3eb04a2e7bfc999052b3f5f2273e9f14f702d38",
+    "gymforge/envs/editor/__init__.py": "dbf63cb52da7130f58dac85ae984ee69c8846cb2b2c8114fefb34e556e70689f",
+    "gymforge/envs/editor/editor_env.py": "afe3dc1987fef5608ae0c6f2bfae902b5778895e04352d59e2523f75eb071969",
+    "gymforge/envs/terminal/__init__.py": "464f3f42be32739dab1f8550d64fa8abfeea7e7c0aeaf37b37c06e8b7c732f22",
+    "gymforge/envs/terminal/bash_env.py": "40789f9bbeb859870c69f52ba839d44fd7e198746c0df1e09ace970859a6e2a2",
+    "gymforge/envs/terminal/fs_env.py": "b5ff22cd409f3063be716dc775a8b901a10dbe2b6c677ec0786ba2b6f9f220b4",
+    "gymforge/envs/workflow/__init__.py": "b1967a4f5b8bdd4b73e4e03ea3296ad3138b5d35850379608ead7933594e0f1a",
+    "gymforge/envs/workflow/pipeline_env.py": "b1478945c171f67b85b4b93b9d871dc38c565b5932a4a4b6b6e58cbbe9e48308",
+    "gymforge/evaluation/__init__.py": "e567330646dedee0ff510b7fa5883d5708662d85de7917ae0ede6d5a8c2bc7df",
+    "gymforge/evaluation/evaluator.py": "d82c4c2cd9669253abc9cd266e5124bdb668be1e201470bbaad2e7af6055d5cd",
+    "gymforge/evaluation/holdout.py": "30891e95948472706e47f6ef30d317bd1837345a6180f9be18494e273e5a241d",
+    "gymforge/evaluation/literal.py": "bf8f5769ba79be6a678b0e2eac330fb4bf86a1a2325a51e13abce9ea93dd3193",
+    "gymforge/evaluation/oracle.py": "e6c67bdacf01a16059ff3ded98d0e6e21ae7281a3a182ebcfa74d2d11dadd3ea",
+    "gymforge/evaluation/reference.py": "6771cfa5ef4077a108d43d4c5607787410281094fb164112b10dd6dcd5ec0c24",
+    "gymforge/evaluation/rubric.py": "45d04b8f92382b475274d7471ee97d8020c8264b0e457fcc6f69e5834e097934",
+    "gymforge/generation/__init__.py": "f6bb25d8b9bf9465e20fae84080652f70b295590503410affd672319375960b8",
+    "gymforge/generation/difficulty.py": "545393f22bfcf6ba13bbcd99f8a91a0e362f612bb25f0bc4a85bbf9adb8aa49f",
+    "gymforge/generation/diversity.py": "ade65eb48428e8a3b50ccbb61c5587f5beb9e6447ead84ee6ba27c49756ea702",
+    "gymforge/generation/task_generator.py": "bd2016f763c30868880d7a61478590360de409b9d326ebda9fc28fda8d1161f2",
+    "gymforge/templates/__init__.py": "f5230ca7d1ef3a159842b2fb840c4f2a3682dabb2d5911f5cf9364f08f86cb4b",
+    "gymforge/trace/__init__.py": "8ba0a8efa3438f6267abc235e3504b9a94111005e869fa6a49f7b9a6f2ec0412",
+    "gymforge/trace/recorder.py": "7821c6b3a83e78dd7adb7d34560b91046e696447fcd9f30d8c64e58eef433f97",
+    "gymforge/trace/replay.py": "b458ba4b5be04f89db55176644212727cf460bcb56a8022836239fe4a3caeff9"
+  },
+  "controls_only": false,
+  "model": "qwen2.5-coder:0.5b",
+  "rows": [
+    {
+      "task": {
+        "id": "55dc9e3a5d33e037e2764971-artifact-v1",
+        "name": "find_replace_artifact",
+        "description": "In settings.ini, replace every occurrence of 'http://' with 'production'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.",
+        "domain": "editor",
+        "difficulty": 0.34,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "settings.ini",
+          "expected_file_exact": "param_0 = default_0\nparam_1 = default_1\nsetting_2 = production_value_2\nsetting_3 = production_value_3\nsetting_4 = production_value_4\nsetting_5 = production_value_5\nparam_6 = default_6\nparam_7 = default_7\nsetting_8 = production_value_8\nparam_9 = default_9\nparam_10 = default_10\nparam_11 = default_11\nsetting_12 = production_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nparam_16 = default_16\nsetting_17 = production_value_17\nsetting_18 = production_value_18\nsetting_19 = production_value_19\nsetting_20 = production_value_20\nsetting_21 = production_value_21\nparam_22 = default_22\nsetting_23 = production_value_23\nsetting_24 = production_value_24\nparam_25 = default_25\nparam_26 = default_26\nsetting_27 = production_value_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nparam_32 = default_32\nparam_33 = default_33\nparam_34 = default_34\nsetting_35 = production_value_35\nparam_36 = default_36\nparam_37 = default_37\nparam_38 = default_38\nparam_39 = default_39\n"
+        },
+        "scaffolding": {
+          "files": {
+            "settings.ini": "param_0 = default_0\nparam_1 = default_1\nsetting_2 = http://_value_2\nsetting_3 = http://_value_3\nsetting_4 = http://_value_4\nsetting_5 = http://_value_5\nparam_6 = default_6\nparam_7 = default_7\nsetting_8 = http://_value_8\nparam_9 = default_9\nparam_10 = default_10\nparam_11 = default_11\nsetting_12 = http://_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nparam_16 = default_16\nsetting_17 = http://_value_17\nsetting_18 = http://_value_18\nsetting_19 = http://_value_19\nsetting_20 = http://_value_20\nsetting_21 = http://_value_21\nparam_22 = default_22\nsetting_23 = http://_value_23\nsetting_24 = http://_value_24\nparam_25 = default_25\nparam_26 = default_26\nsetting_27 = http://_value_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nparam_32 = default_32\nparam_33 = default_33\nparam_34 = default_34\nsetting_35 = http://_value_35\nparam_36 = default_36\nparam_37 = default_37\nparam_38 = default_38\nparam_39 = default_39\n"
+          }
+        },
+        "metadata": {
+          "template": "find_replace",
+          "slots": {
+            "filename": "settings.ini",
+            "old_text": "http://",
+            "new_text": "production",
+            "n_occurrences": 15
+          },
+          "task_seed": 601,
+          "parent_task_id": "55dc9e3a5d33e037e2764971"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "param_0 = default_0\nparam_1 = default_1\nsetting_2 = production_value_2\nsetting_3 = production_value_3\nsetting_4 = production_value_4\nsetting_5 = production_value_5\nparam_6 = default_6\nparam_7 = default_7\nsetting_8 = production_value_8\nparam_9 = default_9\nparam_10 = default_10\nparam_11 = default_11\nsetting_12 = production_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nparam_16 = default_16\nsetting_17 = production_value_17\nsetting_18 = production_value_18\nsetting_19 = production_value_19\nsetting_20 = production_value_20\nsetting_21 = production_value_21\nparam_22 = default_22\nsetting_23 = production_value_23\nsetting_24 = production_value_24\nparam_25 = default_25\nparam_26 = default_26\nsetting_27 = production_value_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nparam_32 = default_32\nparam_33 = default_33\nparam_34 = default_34\nsetting_35 = production_value_35\nparam_36 = default_36\nparam_37 = default_37\nparam_38 = default_38\nparam_39 = default_39\n",
+          "output_sha256": "840dfeb05399606734ec43a5cdb2ceb497d0a6aa80f1bbf39cb5131930a94b8c"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "settings.ini"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"In settings.ini, replace every occurrence of 'http://' with 'production'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.\", \"initial_files\": {\"settings.ini\": \"param_0 = default_0\\nparam_1 = default_1\\nsetting_2 = http://_value_2\\nsetting_3 = http://_value_3\\nsetting_4 = http://_value_4\\nsetting_5 = http://_value_5\\nparam_6 = default_6\\nparam_7 = default_7\\nsetting_8 = http://_value_8\\nparam_9 = default_9\\nparam_10 = default_10\\nparam_11 = default_11\\nsetting_12 = http://_value_12\\nparam_13 = default_13\\nparam_14 = default_14\\nparam_15 = default_15\\nparam_16 = default_16\\nsetting_17 = http://_value_17\\nsetting_18 = http://_value_18\\nsetting_19 = http://_value_19\\nsetting_20 = http://_value_20\\nsetting_21 = http://_value_21\\nparam_22 = default_22\\nsetting_23 = http://_value_23\\nsetting_24 = http://_value_24\\nparam_25 = default_25\\nparam_26 = default_26\\nsetting_27 = http://_value_27\\nparam_28 = default_28\\nparam_29 = default_29\\nparam_30 = default_30\\nparam_31 = default_31\\nparam_32 = default_32\\nparam_33 = default_33\\nparam_34 = default_34\\nsetting_35 = http://_value_35\\nparam_36 = default_36\\nparam_37 = default_37\\nparam_38 = default_38\\nparam_39 = default_39\\n\"}, \"allowed_output\": \"settings.ini\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2000,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "f44e40f0bd9a4fb601190885c3d1569ec23870cc606a16075facb015ce3b2729",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:19.293536Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"op\\\": \\\"write\\\",\\n  \\\"path\\\": \\\"settings.ini\\\",\\n  \\\"content\\\": \\\"param_0 = default_0\\\\nparam_1 = default_1\\\\nsetting_2 = production\\\\nsetting_3 = production\\\\nsetting_4 = production\\\\nsetting_5 = production\\\\nparam_6 = default_6\\\\nparam_7 = default_7\\\\nsetting_8 = production\\\\nparam_9 = default_9\\\\nparam_10 = default_10\\\\nparam_11 = default_11\\\\nsetting_12 = production\\\\nparam_13 = production\\\\nparam_14 = production\\\\nparam_15 = production\\\\nparam_16 = production\\\\nsetting_17 = production\\\\nsetting_18 = production\\\\nsetting_19 = production\\\\nsetting_20 = production\\\\nsetting_21 = production\\\\nparam_22 = default_22\\\\nsetting_23 = production\\\\nsetting_24 = production\\\\nparam_25 = production\\\\nparam_26 = production\\\\nsetting_27 = production\\\\nparam_28 = production\\\\nparam_29 = production\\\\nparam_30 = production\\\\nparam_31 = production\\\\nparam_32 = production\\\\nparam_33 = production\\\\nparam_34 = production\\\\nsetting_35 = production\\\\nparam_36 = production\\\\nparam_37 = production\\\\nparam_38 = production\\\\nparam_39 = production\\\\n\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":9507139500,\"load_duration\":3952374583,\"prompt_eval_count\":534,\"prompt_eval_cached_count\":0,\"prompt_eval_duration\":369846000,\"eval_count\":313,\"eval_duration\":5170573000}",
+      "response_sha256": "646f109a8a262cde80e623cc893989d46b346c251aa522c90d47f07e6a000e69",
+      "output": "param_0 = default_0\nparam_1 = default_1\nsetting_2 = production\nsetting_3 = production\nsetting_4 = production\nsetting_5 = production\nparam_6 = default_6\nparam_7 = default_7\nsetting_8 = production\nparam_9 = default_9\nparam_10 = default_10\nparam_11 = default_11\nsetting_12 = production\nparam_13 = production\nparam_14 = production\nparam_15 = production\nparam_16 = production\nsetting_17 = production\nsetting_18 = production\nsetting_19 = production\nsetting_20 = production\nsetting_21 = production\nparam_22 = default_22\nsetting_23 = production\nsetting_24 = production\nparam_25 = production\nparam_26 = production\nsetting_27 = production\nparam_28 = production\nparam_29 = production\nparam_30 = production\nparam_31 = production\nparam_32 = production\nparam_33 = production\nparam_34 = production\nsetting_35 = production\nparam_36 = production\nparam_37 = production\nparam_38 = production\nparam_39 = production\n",
+      "output_sha256": "c821858e66be1c05be9d5b1cccf1567ae0f63a2966cb392547b0321ad3537a47",
+      "elapsed_seconds": 9.589165291021345
+    },
+    {
+      "task": {
+        "id": "f10258b5ce2088a4c0ef8c33-artifact-v1",
+        "name": "sort_dedup_csv_artifact",
+        "description": "Sort records.csv by the 'id' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to deduped.csv. Preserve the CSV header and final newline.",
+        "domain": "editor",
+        "difficulty": 0.406,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "deduped.csv",
+          "expected_file_exact": "row_id,id,payload\n0,alpha,21\n10,alpha,42\n1,beta,3\n11,beta,12\n13,delta,9\n3,delta,91\n14,epsilon,47\n4,epsilon,4\n6,eta,48\n12,gamma,57\n2,gamma,41\n8,iota,28\n9,kappa,70\n7,theta,75\n15,zeta,49\n5,zeta,24\n"
+        },
+        "scaffolding": {
+          "files": {
+            "records.csv": "row_id,id,payload\n6,eta,48\n15,zeta,49\n10,alpha,42\n7,theta,75\n9,kappa,70\n13,delta,9\n14,epsilon,47\n12,gamma,57\n0,alpha,21\n4,epsilon,4\n2,gamma,41\n8,iota,28\n3,delta,91\n3,delta,91\n0,alpha,21\n2,gamma,41\n11,beta,12\n1,beta,3\n1,beta,3\n5,zeta,24\n"
+          }
+        },
+        "metadata": {
+          "template": "sort_dedup_csv",
+          "slots": {
+            "filename": "records.csv",
+            "sort_col": "id",
+            "output_file": "deduped.csv",
+            "n_rows": 20,
+            "n_dupes": 4
+          },
+          "task_seed": 601,
+          "parent_task_id": "f10258b5ce2088a4c0ef8c33"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "row_id,id,payload\n0,alpha,21\n10,alpha,42\n1,beta,3\n11,beta,12\n13,delta,9\n3,delta,91\n14,epsilon,47\n4,epsilon,4\n6,eta,48\n12,gamma,57\n2,gamma,41\n8,iota,28\n9,kappa,70\n7,theta,75\n15,zeta,49\n5,zeta,24\n",
+          "output_sha256": "389088a1ee8910f145552b6c831225c5b511354bc71d0c0c3bcb3a098b2b3b9d"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "deduped.csv"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"Sort records.csv by the 'id' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to deduped.csv. Preserve the CSV header and final newline.\", \"initial_files\": {\"records.csv\": \"row_id,id,payload\\n6,eta,48\\n15,zeta,49\\n10,alpha,42\\n7,theta,75\\n9,kappa,70\\n13,delta,9\\n14,epsilon,47\\n12,gamma,57\\n0,alpha,21\\n4,epsilon,4\\n2,gamma,41\\n8,iota,28\\n3,delta,91\\n3,delta,91\\n0,alpha,21\\n2,gamma,41\\n11,beta,12\\n1,beta,3\\n1,beta,3\\n5,zeta,24\\n\"}, \"allowed_output\": \"deduped.csv\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2001,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "30889a8f6aeaa2478ac9666a5732ab1e7cccea0949b07d0c5f5949de61d39d2f",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:22.46261Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"op\\\": \\\"write\\\",\\n  \\\"path\\\": \\\"deduped.csv\\\",\\n  \\\"content\\\": \\\"id,payload\\\\n10,alpha,42\\\\n15,zeta,49\\\\n13,delta,9\\\\n14,epsilon,47\\\\n12,gamma,57\\\\n0,alpha,21\\\\n4,epsilon,4\\\\n2,gamma,41\\\\n8,iota,28\\\\n3,delta,91\\\\n3,delta,91\\\\n0,alpha,21\\\\n2,gamma,41\\\\n11,beta,12\\\\n1,beta,3\\\\n1,beta,3\\\\n5,zeta,24\\\\n\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":3033888708,\"load_duration\":32315875,\"prompt_eval_count\":259,\"prompt_eval_cached_count\":46,\"prompt_eval_duration\":250494000,\"eval_count\":148,\"eval_duration\":2729465000}",
+      "response_sha256": "92aa4d1e348076808ec5dc8841870f52b89b0b8c23fc2039bb2733660915f6db",
+      "output": "id,payload\n10,alpha,42\n15,zeta,49\n13,delta,9\n14,epsilon,47\n12,gamma,57\n0,alpha,21\n4,epsilon,4\n2,gamma,41\n8,iota,28\n3,delta,91\n3,delta,91\n0,alpha,21\n2,gamma,41\n11,beta,12\n1,beta,3\n1,beta,3\n5,zeta,24\n",
+      "output_sha256": "f33a0d161be1fa98cc853ac07358851002aba5e3a083c766664e93f98580e246",
+      "elapsed_seconds": 3.1049395419831853
+    },
+    {
+      "task": {
+        "id": "ce84c411c5e91283dc7e1afb-artifact-v1",
+        "name": "find_replace_artifact",
+        "description": "In words.txt, replace every occurrence of 'localhost' with 'production'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.",
+        "domain": "editor",
+        "difficulty": 0.293,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "words.txt",
+          "expected_file_exact": "param_0 = default_0\nsetting_1 = production_value_1\nsetting_2 = production_value_2\nsetting_3 = production_value_3\nsetting_4 = production_value_4\nparam_5 = default_5\nparam_6 = default_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = production_value_10\nsetting_11 = production_value_11\nsetting_12 = production_value_12\nsetting_13 = production_value_13\nsetting_14 = production_value_14\nsetting_15 = production_value_15\nparam_16 = default_16\nsetting_17 = production_value_17\nsetting_18 = production_value_18\nsetting_19 = production_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nparam_23 = default_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nsetting_28 = production_value_28\nparam_29 = default_29\nsetting_30 = production_value_30\nsetting_31 = production_value_31\nparam_32 = default_32\nparam_33 = default_33\nsetting_34 = production_value_34\nparam_35 = default_35\nparam_36 = default_36\nsetting_37 = production_value_37\nparam_38 = default_38\nsetting_39 = production_value_39\n"
+        },
+        "scaffolding": {
+          "files": {
+            "words.txt": "param_0 = default_0\nsetting_1 = localhost_value_1\nsetting_2 = localhost_value_2\nsetting_3 = localhost_value_3\nsetting_4 = localhost_value_4\nparam_5 = default_5\nparam_6 = default_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = localhost_value_10\nsetting_11 = localhost_value_11\nsetting_12 = localhost_value_12\nsetting_13 = localhost_value_13\nsetting_14 = localhost_value_14\nsetting_15 = localhost_value_15\nparam_16 = default_16\nsetting_17 = localhost_value_17\nsetting_18 = localhost_value_18\nsetting_19 = localhost_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nparam_23 = default_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nsetting_28 = localhost_value_28\nparam_29 = default_29\nsetting_30 = localhost_value_30\nsetting_31 = localhost_value_31\nparam_32 = default_32\nparam_33 = default_33\nsetting_34 = localhost_value_34\nparam_35 = default_35\nparam_36 = default_36\nsetting_37 = localhost_value_37\nparam_38 = default_38\nsetting_39 = localhost_value_39\n"
+          }
+        },
+        "metadata": {
+          "template": "find_replace",
+          "slots": {
+            "filename": "words.txt",
+            "old_text": "localhost",
+            "new_text": "production",
+            "n_occurrences": 19
+          },
+          "task_seed": 701,
+          "parent_task_id": "ce84c411c5e91283dc7e1afb"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "param_0 = default_0\nsetting_1 = production_value_1\nsetting_2 = production_value_2\nsetting_3 = production_value_3\nsetting_4 = production_value_4\nparam_5 = default_5\nparam_6 = default_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = production_value_10\nsetting_11 = production_value_11\nsetting_12 = production_value_12\nsetting_13 = production_value_13\nsetting_14 = production_value_14\nsetting_15 = production_value_15\nparam_16 = default_16\nsetting_17 = production_value_17\nsetting_18 = production_value_18\nsetting_19 = production_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nparam_23 = default_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nsetting_28 = production_value_28\nparam_29 = default_29\nsetting_30 = production_value_30\nsetting_31 = production_value_31\nparam_32 = default_32\nparam_33 = default_33\nsetting_34 = production_value_34\nparam_35 = default_35\nparam_36 = default_36\nsetting_37 = production_value_37\nparam_38 = default_38\nsetting_39 = production_value_39\n",
+          "output_sha256": "f474161b177cc4af2e65bac351976e1d24b04fb6ed6f09a90fd189782a059be2"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "words.txt"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"In words.txt, replace every occurrence of 'localhost' with 'production'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.\", \"initial_files\": {\"words.txt\": \"param_0 = default_0\\nsetting_1 = localhost_value_1\\nsetting_2 = localhost_value_2\\nsetting_3 = localhost_value_3\\nsetting_4 = localhost_value_4\\nparam_5 = default_5\\nparam_6 = default_6\\nparam_7 = default_7\\nparam_8 = default_8\\nparam_9 = default_9\\nsetting_10 = localhost_value_10\\nsetting_11 = localhost_value_11\\nsetting_12 = localhost_value_12\\nsetting_13 = localhost_value_13\\nsetting_14 = localhost_value_14\\nsetting_15 = localhost_value_15\\nparam_16 = default_16\\nsetting_17 = localhost_value_17\\nsetting_18 = localhost_value_18\\nsetting_19 = localhost_value_19\\nparam_20 = default_20\\nparam_21 = default_21\\nparam_22 = default_22\\nparam_23 = default_23\\nparam_24 = default_24\\nparam_25 = default_25\\nparam_26 = default_26\\nparam_27 = default_27\\nsetting_28 = localhost_value_28\\nparam_29 = default_29\\nsetting_30 = localhost_value_30\\nsetting_31 = localhost_value_31\\nparam_32 = default_32\\nparam_33 = default_33\\nsetting_34 = localhost_value_34\\nparam_35 = default_35\\nparam_36 = default_36\\nsetting_37 = localhost_value_37\\nparam_38 = default_38\\nsetting_39 = localhost_value_39\\n\"}, \"allowed_output\": \"words.txt\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2002,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "327eb0b9231197542f476adb43974c79331079ec6de8559f133d637b7afcf4bb",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:31.180055Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"op\\\": \\\"write\\\", \\\"path\\\": \\\"words.txt\\\", \\\"content\\\": \\\"param_0 = production_value_0\\\\nsetting_1 = localhost_value_1\\\\nsetting_2 = localhost_value_2\\\\nsetting_3 = localhost_value_3\\\\nsetting_4 = localhost_value_4\\\\nparam_5 = production_value_5\\\\nparam_6 = production_value_6\\\\nparam_7 = production_value_7\\\\nparam_8 = production_value_8\\\\nparam_9 = production_value_9\\\\nsetting_10 = localhost_value_10\\\\nsetting_11 = localhost_value_11\\\\nsetting_12 = localhost_value_12\\\\nsetting_13 = localhost_value_13\\\\nsetting_14 = localhost_value_14\\\\nsetting_15 = production_value_15\\\\nparam_16 = production_value_16\\\\nsetting_17 = production_value_17\\\\nsetting_18 = production_value_18\\\\nsetting_19 = production_value_19\\\\nparam_20 = production_value_20\\\\nparam_21 = production_value_21\\\\nparam_22 = production_value_22\\\\nparam_23 = production_value_23\\\\nparam_24 = production_value_24\\\\nparam_25 = production_value_25\\\\nparam_26 = production_value_26\\\\nparam_27 = production_value_27\\\\nsetting_28 = localhost_value_28\\\\nparam_29 = localhost_value_29\\\\nsetting_30 = localhost_value_30\\\\nsetting_31 = localhost_value_31\\\\nparam_32 = localhost_value_32\\\\nparam_33 = localhost_value_33\\\\nsetting_34 = localhost_value_34\\\\nparam_35 = production_value_35\\\\nparam_36 = production_value_36\\\\nsetting_37 = production_value_37\\\\nparam_38 = production_value_38\\\\nsetting_39 = production_value_39\\\\n\\\"}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":8676548583,\"load_duration\":6652208,\"prompt_eval_count\":508,\"prompt_eval_cached_count\":46,\"prompt_eval_duration\":514347000,\"eval_count\":439,\"eval_duration\":8123562000}",
+      "response_sha256": "dbf2caf6f3b537ad3de5e0f95509ae5447d9f88052963c4b53de9d5a2d883ea1",
+      "output": "param_0 = production_value_0\nsetting_1 = localhost_value_1\nsetting_2 = localhost_value_2\nsetting_3 = localhost_value_3\nsetting_4 = localhost_value_4\nparam_5 = production_value_5\nparam_6 = production_value_6\nparam_7 = production_value_7\nparam_8 = production_value_8\nparam_9 = production_value_9\nsetting_10 = localhost_value_10\nsetting_11 = localhost_value_11\nsetting_12 = localhost_value_12\nsetting_13 = localhost_value_13\nsetting_14 = localhost_value_14\nsetting_15 = production_value_15\nparam_16 = production_value_16\nsetting_17 = production_value_17\nsetting_18 = production_value_18\nsetting_19 = production_value_19\nparam_20 = production_value_20\nparam_21 = production_value_21\nparam_22 = production_value_22\nparam_23 = production_value_23\nparam_24 = production_value_24\nparam_25 = production_value_25\nparam_26 = production_value_26\nparam_27 = production_value_27\nsetting_28 = localhost_value_28\nparam_29 = localhost_value_29\nsetting_30 = localhost_value_30\nsetting_31 = localhost_value_31\nparam_32 = localhost_value_32\nparam_33 = localhost_value_33\nsetting_34 = localhost_value_34\nparam_35 = production_value_35\nparam_36 = production_value_36\nsetting_37 = production_value_37\nparam_38 = production_value_38\nsetting_39 = production_value_39\n",
+      "output_sha256": "95d5ad9d96bb77d4579d14ee0aa79b4fdc9572dc0d8293e1d5ecdd1865407563",
+      "elapsed_seconds": 8.765922833990771
+    },
+    {
+      "task": {
+        "id": "9abc7387420dedfaab3ddabb-artifact-v1",
+        "name": "sort_dedup_csv_artifact",
+        "description": "Sort scores.csv by the 'score' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to sorted.csv. Preserve the CSV header and final newline.",
+        "domain": "editor",
+        "difficulty": 0.358,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "sorted.csv",
+          "expected_file_exact": "row_id,score,payload\n0,alpha,54\n1,beta,11\n3,delta,41\n4,epsilon,34\n2,gamma,33\n"
+        },
+        "scaffolding": {
+          "files": {
+            "scores.csv": "row_id,score,payload\n4,epsilon,34\n2,gamma,33\n1,beta,11\n1,beta,11\n2,gamma,33\n3,delta,41\n0,alpha,54\n3,delta,41\n4,epsilon,34\n0,alpha,54\n"
+          }
+        },
+        "metadata": {
+          "template": "sort_dedup_csv",
+          "slots": {
+            "filename": "scores.csv",
+            "sort_col": "score",
+            "output_file": "sorted.csv",
+            "n_rows": 13,
+            "n_dupes": 8
+          },
+          "task_seed": 701,
+          "parent_task_id": "9abc7387420dedfaab3ddabb"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "row_id,score,payload\n0,alpha,54\n1,beta,11\n3,delta,41\n4,epsilon,34\n2,gamma,33\n",
+          "output_sha256": "8cbb6c67cc0d6ed8f73d1759b6aa1d7297b88324b0d6076468330adde46137e9"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "sorted.csv"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"Sort scores.csv by the 'score' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to sorted.csv. Preserve the CSV header and final newline.\", \"initial_files\": {\"scores.csv\": \"row_id,score,payload\\n4,epsilon,34\\n2,gamma,33\\n1,beta,11\\n1,beta,11\\n2,gamma,33\\n3,delta,41\\n0,alpha,54\\n3,delta,41\\n4,epsilon,34\\n0,alpha,54\\n\"}, \"allowed_output\": \"sorted.csv\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2003,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "624fbaa1ff51f99e94e986b017d34be8a2ed05742b1d53be673395ece40e66f9",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:33.169312Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"op\\\": \\\"write\\\",\\n  \\\"path\\\": \\\"sorted.csv\\\",\\n  \\\"content\\\": \\\"row_id,score,payload\\\\n0,alpha,54\\\\n1,beta,11\\\\n1,beta,11\\\\n2,gamma,33\\\\n3,delta,41\\\\n4,epsilon,34\\\\n0,alpha,54\\\\n3,delta,41\\\\n4,epsilon,34\\\\n0,alpha,54\\\\n\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":1859146541,\"load_duration\":45592375,\"prompt_eval_count\":185,\"prompt_eval_cached_count\":46,\"prompt_eval_duration\":176311000,\"eval_count\":98,\"eval_duration\":1606222000}",
+      "response_sha256": "36a6c8e868474f3b9949fe5f774b119d07b4e33014e904ae68b283f667a43228",
+      "output": "row_id,score,payload\n0,alpha,54\n1,beta,11\n1,beta,11\n2,gamma,33\n3,delta,41\n4,epsilon,34\n0,alpha,54\n3,delta,41\n4,epsilon,34\n0,alpha,54\n",
+      "output_sha256": "8e68c5c3037241a786ec01e834afd7d04206d7d98966eb0b3473794f9e6c33aa",
+      "elapsed_seconds": 1.9181926670134999
+    },
+    {
+      "task": {
+        "id": "d823cdc57a30522b3b851fa1-artifact-v1",
+        "name": "find_replace_artifact",
+        "description": "In config.txt, replace every occurrence of 'placeholder' with 'bar'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.",
+        "domain": "editor",
+        "difficulty": 0.286,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "config.txt",
+          "expected_file_exact": "setting_0 = bar_value_0\nparam_1 = default_1\nparam_2 = default_2\nsetting_3 = bar_value_3\nparam_4 = default_4\nparam_5 = default_5\nsetting_6 = bar_value_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = bar_value_10\nparam_11 = default_11\nsetting_12 = bar_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nsetting_16 = bar_value_16\nparam_17 = default_17\nparam_18 = default_18\nsetting_19 = bar_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nsetting_23 = bar_value_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nsetting_32 = bar_value_32\nparam_33 = default_33\nsetting_34 = bar_value_34\nparam_35 = default_35\nparam_36 = default_36\nparam_37 = default_37\nsetting_38 = bar_value_38\nsetting_39 = bar_value_39\n"
+        },
+        "scaffolding": {
+          "files": {
+            "config.txt": "setting_0 = placeholder_value_0\nparam_1 = default_1\nparam_2 = default_2\nsetting_3 = placeholder_value_3\nparam_4 = default_4\nparam_5 = default_5\nsetting_6 = placeholder_value_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = placeholder_value_10\nparam_11 = default_11\nsetting_12 = placeholder_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nsetting_16 = placeholder_value_16\nparam_17 = default_17\nparam_18 = default_18\nsetting_19 = placeholder_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nsetting_23 = placeholder_value_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nsetting_32 = placeholder_value_32\nparam_33 = default_33\nsetting_34 = placeholder_value_34\nparam_35 = default_35\nparam_36 = default_36\nparam_37 = default_37\nsetting_38 = placeholder_value_38\nsetting_39 = placeholder_value_39\n"
+          }
+        },
+        "metadata": {
+          "template": "find_replace",
+          "slots": {
+            "filename": "config.txt",
+            "old_text": "placeholder",
+            "new_text": "bar",
+            "n_occurrences": 12
+          },
+          "task_seed": 809,
+          "parent_task_id": "d823cdc57a30522b3b851fa1"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "setting_0 = bar_value_0\nparam_1 = default_1\nparam_2 = default_2\nsetting_3 = bar_value_3\nparam_4 = default_4\nparam_5 = default_5\nsetting_6 = bar_value_6\nparam_7 = default_7\nparam_8 = default_8\nparam_9 = default_9\nsetting_10 = bar_value_10\nparam_11 = default_11\nsetting_12 = bar_value_12\nparam_13 = default_13\nparam_14 = default_14\nparam_15 = default_15\nsetting_16 = bar_value_16\nparam_17 = default_17\nparam_18 = default_18\nsetting_19 = bar_value_19\nparam_20 = default_20\nparam_21 = default_21\nparam_22 = default_22\nsetting_23 = bar_value_23\nparam_24 = default_24\nparam_25 = default_25\nparam_26 = default_26\nparam_27 = default_27\nparam_28 = default_28\nparam_29 = default_29\nparam_30 = default_30\nparam_31 = default_31\nsetting_32 = bar_value_32\nparam_33 = default_33\nsetting_34 = bar_value_34\nparam_35 = default_35\nparam_36 = default_36\nparam_37 = default_37\nsetting_38 = bar_value_38\nsetting_39 = bar_value_39\n",
+          "output_sha256": "77a459c8f68ce7bc95f94b95a76a1c7d5fc994656209f82a669196d871450317"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "config.txt"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"In config.txt, replace every occurrence of 'placeholder' with 'bar'. Preserve all other text and the final newline. Write the complete edited file. No printed-count requirement applies to this editor variant.\", \"initial_files\": {\"config.txt\": \"setting_0 = placeholder_value_0\\nparam_1 = default_1\\nparam_2 = default_2\\nsetting_3 = placeholder_value_3\\nparam_4 = default_4\\nparam_5 = default_5\\nsetting_6 = placeholder_value_6\\nparam_7 = default_7\\nparam_8 = default_8\\nparam_9 = default_9\\nsetting_10 = placeholder_value_10\\nparam_11 = default_11\\nsetting_12 = placeholder_value_12\\nparam_13 = default_13\\nparam_14 = default_14\\nparam_15 = default_15\\nsetting_16 = placeholder_value_16\\nparam_17 = default_17\\nparam_18 = default_18\\nsetting_19 = placeholder_value_19\\nparam_20 = default_20\\nparam_21 = default_21\\nparam_22 = default_22\\nsetting_23 = placeholder_value_23\\nparam_24 = default_24\\nparam_25 = default_25\\nparam_26 = default_26\\nparam_27 = default_27\\nparam_28 = default_28\\nparam_29 = default_29\\nparam_30 = default_30\\nparam_31 = default_31\\nsetting_32 = placeholder_value_32\\nparam_33 = default_33\\nsetting_34 = placeholder_value_34\\nparam_35 = default_35\\nparam_36 = default_36\\nparam_37 = default_37\\nsetting_38 = placeholder_value_38\\nsetting_39 = placeholder_value_39\\n\"}, \"allowed_output\": \"config.txt\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2004,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "95b04851f4fc171659ae97e0bf41c119ad4a4fe73c45be5c5deca4ef0c8939c9",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:41.401334Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"op\\\": \\\"write\\\",\\n  \\\"path\\\": \\\"config.txt\\\",\\n  \\\"content\\\": \\\"setting_0 = bar_value_0\\\\nparam_1 = bar_default_1\\\\nparam_2 = bar_default_2\\\\nsetting_3 = bar_value_3\\\\nparam_4 = bar_default_4\\\\nparam_5 = bar_default_5\\\\nsetting_6 = bar_value_6\\\\nparam_7 = bar_default_7\\\\nparam_8 = bar_default_8\\\\nparam_9 = bar_default_9\\\\nsetting_10 = bar_value_10\\\\nparam_11 = bar_value_11\\\\nparam_12 = bar_value_12\\\\nparam_13 = bar_value_13\\\\nparam_14 = bar_value_14\\\\nparam_15 = bar_value_15\\\\nsetting_16 = bar_value_16\\\\nparam_17 = bar_value_17\\\\nparam_18 = bar_value_18\\\\nparam_19 = bar_value_19\\\\nparam_20 = bar_value_20\\\\nparam_21 = bar_value_21\\\\nparam_22 = bar_value_22\\\\nsetting_23 = bar_value_23\\\\nparam_24 = bar_value_24\\\\nparam_25 = bar_value_25\\\\nparam_26 = bar_value_26\\\\nparam_27 = bar_value_27\\\\nparam_28 = bar_value_28\\\\nparam_29 = bar_value_29\\\\nparam_30 = bar_value_30\\\\nparam_31 = bar_value_31\\\\nsetting_32 = bar_value_32\\\\nparam_33 = bar_value_33\\\\nsetting_34 = bar_value_34\\\\nparam_35 = bar_value_35\\\\nparam_36 = bar_value_36\\\\nparam_37 = bar_value_37\\\\nsetting_38 = bar_value_38\\\\nsetting_39 = bar_value_39\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":8208415500,\"load_duration\":4316583,\"prompt_eval_count\":501,\"prompt_eval_cached_count\":46,\"prompt_eval_duration\":467535000,\"eval_count\":443,\"eval_duration\":7730051000}",
+      "response_sha256": "dfc366be0ae75baa8a0f72b58a4644909ad544822535da690fde07a21d89f82a",
+      "output": "setting_0 = bar_value_0\nparam_1 = bar_default_1\nparam_2 = bar_default_2\nsetting_3 = bar_value_3\nparam_4 = bar_default_4\nparam_5 = bar_default_5\nsetting_6 = bar_value_6\nparam_7 = bar_default_7\nparam_8 = bar_default_8\nparam_9 = bar_default_9\nsetting_10 = bar_value_10\nparam_11 = bar_value_11\nparam_12 = bar_value_12\nparam_13 = bar_value_13\nparam_14 = bar_value_14\nparam_15 = bar_value_15\nsetting_16 = bar_value_16\nparam_17 = bar_value_17\nparam_18 = bar_value_18\nparam_19 = bar_value_19\nparam_20 = bar_value_20\nparam_21 = bar_value_21\nparam_22 = bar_value_22\nsetting_23 = bar_value_23\nparam_24 = bar_value_24\nparam_25 = bar_value_25\nparam_26 = bar_value_26\nparam_27 = bar_value_27\nparam_28 = bar_value_28\nparam_29 = bar_value_29\nparam_30 = bar_value_30\nparam_31 = bar_value_31\nsetting_32 = bar_value_32\nparam_33 = bar_value_33\nsetting_34 = bar_value_34\nparam_35 = bar_value_35\nparam_36 = bar_value_36\nparam_37 = bar_value_37\nsetting_38 = bar_value_38\nsetting_39 = bar_value_39",
+      "output_sha256": "556b3d3680c7f77284fbed80293c74f0587eaa91d9b54cee3e06523fff038037",
+      "elapsed_seconds": 8.232515042007435
+    },
+    {
+      "task": {
+        "id": "6921f24fbd469cd42ffa5cdf-artifact-v1",
+        "name": "sort_dedup_csv_artifact",
+        "description": "Sort data.csv by the 'name' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to clean.csv. Preserve the CSV header and final newline.",
+        "domain": "editor",
+        "difficulty": 0.434,
+        "max_steps": 1,
+        "success_criteria": {
+          "expected_file": "clean.csv",
+          "expected_file_exact": "row_id,name,payload\n0,alpha,22\n1,beta,5\n3,delta,9\n4,epsilon,59\n6,eta,27\n2,gamma,42\n8,iota,40\n9,kappa,28\n7,theta,8\n5,zeta,32\n"
+        },
+        "scaffolding": {
+          "files": {
+            "data.csv": "row_id,name,payload\n8,iota,40\n3,delta,9\n2,gamma,42\n3,delta,9\n0,alpha,22\n6,eta,27\n5,zeta,32\n9,kappa,28\n0,alpha,22\n7,theta,8\n1,beta,5\n4,epsilon,59\n2,gamma,42\n1,beta,5\n"
+          }
+        },
+        "metadata": {
+          "template": "sort_dedup_csv",
+          "slots": {
+            "filename": "data.csv",
+            "sort_col": "name",
+            "output_file": "clean.csv",
+            "n_rows": 14,
+            "n_dupes": 4
+          },
+          "task_seed": 809,
+          "parent_task_id": "6921f24fbd469cd42ffa5cdf"
+        }
+      },
+      "controls": {
+        "reference": {
+          "accepted": true,
+          "action_valid": true,
+          "output": "row_id,name,payload\n0,alpha,22\n1,beta,5\n3,delta,9\n4,epsilon,59\n6,eta,27\n2,gamma,42\n8,iota,40\n9,kappa,28\n7,theta,8\n5,zeta,32\n",
+          "output_sha256": "77511fcf4c4bb29631a338fe197ae752e1808e03c24065bcfcb7244d6c1207b0"
+        },
+        "noop": {
+          "accepted": false,
+          "action_valid": false
+        }
+      },
+      "accepted": false,
+      "action_valid": true,
+      "status": "completed",
+      "request": {
+        "model": "qwen2.5-coder:0.5b",
+        "stream": false,
+        "format": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "write"
+            },
+            "path": {
+              "const": "clean.csv"
+            },
+            "content": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        "messages": [
+          {
+            "role": "system",
+            "content": "Perform the requested text-file transformation. Return one JSON write action with the complete literal file content. Never return commands, code, explanations or markdown. Preserve unchanged text exactly."
+          },
+          {
+            "role": "user",
+            "content": "{\"task\": \"Sort data.csv by the 'name' column and remove duplicate rows (lexicographic sort; ties ordered by the full row), writing the result to clean.csv. Preserve the CSV header and final newline.\", \"initial_files\": {\"data.csv\": \"row_id,name,payload\\n8,iota,40\\n3,delta,9\\n2,gamma,42\\n3,delta,9\\n0,alpha,22\\n6,eta,27\\n5,zeta,32\\n9,kappa,28\\n0,alpha,22\\n7,theta,8\\n1,beta,5\\n4,epsilon,59\\n2,gamma,42\\n1,beta,5\\n\"}, \"allowed_output\": \"clean.csv\"}"
+          }
+        ],
+        "options": {
+          "temperature": 0,
+          "seed": 2005,
+          "num_ctx": 8192,
+          "num_predict": 1000
+        }
+      },
+      "request_sha256": "b21a35c9397f14b37ec45fa58bb856fdeeb99458f446bdb3d9a63cf045dfce93",
+      "response": "{\"model\":\"qwen2.5-coder:0.5b\",\"created_at\":\"2026-10-14T15:32:43.713246Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n  \\\"op\\\": \\\"write\\\",\\n  \\\"path\\\": \\\"clean.csv\\\",\\n  \\\"content\\\": \\\"row_id,name,payload\\\\n8,iota,40\\\\n3,delta,9\\\\n2,gamma,42\\\\n3,delta,9\\\\n0,alpha,22\\\\n6,eta,27\\\\n5,zeta,32\\\\n9,kappa,28\\\\n0,alpha,22\\\\n7,theta,8\\\\n1,beta,5\\\\n4,epsilon,59\\\\n2,gamma,42\\\\n1,beta,5\\\\n\\\"\\n}\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":2267314292,\"load_duration\":26584542,\"prompt_eval_count\":207,\"prompt_eval_cached_count\":46,\"prompt_eval_duration\":214111000,\"eval_count\":121,\"eval_duration\":2001250000}",
+      "response_sha256": "cdcc73aa84b96b296d2b74c9786530af2da8daf872d5b7fc913da17c8bc6a7ac",
+      "output": "row_id,name,payload\n8,iota,40\n3,delta,9\n2,gamma,42\n3,delta,9\n0,alpha,22\n6,eta,27\n5,zeta,32\n9,kappa,28\n0,alpha,22\n7,theta,8\n1,beta,5\n4,epsilon,59\n2,gamma,42\n1,beta,5\n",
+      "output_sha256": "cb5a7544b3f2d2730ca80a334b721c527286b0dc1826b39f0cd7049a9ec651dd",
+      "elapsed_seconds": 2.3024685840064194
+    }
+  ],
+  "limits": "Six derived editor tasks, one local model, one sample each. No shell/code execution, no full terminal success, RL or difficulty-calibration claim. Context completeness unverified.",
+  "model_metadata": {
+    "name": "qwen2.5-coder:0.5b",
+    "model": "qwen2.5-coder:0.5b",
+    "modified_at": "2026-10-14T17:42:32.515107931+05:30",
+    "size": 397821516,
+    "digest": "4ff64a7f502a08b7616edb8ca0a79eb1853fc363d842b7df4b46915d11a3fb09",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "494.03M",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 896,
+      "runner": "ggml"
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "insert"
+    ]
+  },
+  "runtime": {
+    "version": "0.40.1"
+  },
+  "model_parameters": null,
+  "template_sha256": "1e65450c30670713aa47fe23e8b9662bdf4065e81cc8e3cbfaa98924fcc0d320",
+  "digest_continuity": true,
+  "summary": {
+    "tasks": 6,
+    "reference_passes": 6,
+    "noop_passes": 0,
+    "attempted": 6,
+    "valid_actions": 6,
+    "task_completions": 0,
+    "by_family": {
+      "find_replace": {
+        "tasks": 3,
+        "completed": 0
+      },
+      "sort_dedup_csv": {
+        "tasks": 3,
+        "completed": 0
+      }
+    },
+    "functional_gate_passed": false
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "protocol": "literal-artifact-agent-v1",
+  "source_commit": "210ac0a34f813d9c9ce084ec00b0d1a0e81db6d4",
+  "model": "qwen2.5-coder:0.5b",
+  "model_metadata": {
+    "name": "qwen2.5-coder:0.5b",
+    "model": "qwen2.5-coder:0.5b",
+    "modified_at": "2026-10-14T17:42:32.515107931+05:30",
+    "size": 397821516,
+    "digest": "4ff64a7f502a08b7616edb8ca0a79eb1853fc363d842b7df4b46915d11a3fb09",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen2",
+      "families": [
+        "qwen2"
+      ],
+      "parameter_size": "494.03M",
+      "quantization_level": "Q4_K_M",
+      "context_length": 32768,
+      "embedding_length": 896,
+      "runner": "ggml"
+    },
+    "capabilities": [
+      "completion",
+      "tools",
+      "insert"
+    ]
+  },
+  "runtime": {
+    "version": "0.40.1"
+  },
+  "digest_continuity": true,
+  "summary": {
+    "tasks": 6,
+    "reference_passes": 6,
+    "noop_passes": 0,
+    "attempted": 6,
+    "valid_actions": 6,
+    "task_completions": 0,
+    "by_family": {
+      "find_replace": {
+        "tasks": 3,
+        "completed": 0
+      },
+      "sort_dedup_csv": {
+        "tasks": 3,
+        "completed": 0
+      }
+    },
+    "functional_gate_passed": false
+  },
+  "limits": "Six derived editor tasks, one local model, one sample each. No shell/code execution, no full terminal success, RL or difficulty-calibration claim. Context completeness unverified.",
+  "raw_artifact": "literal-agent-v1.json",
+  "raw_sha256": "15c199384f360e7e34e347080cda942d8b9e5db27c87e5457e605e9b99b201f4",
+  "diagnosis": "All six outputs finished normally and passed the literal write contract. All six transformations were wrong; zero truncation, syntax, transport or scorer failures.",
+  "offline_replay": {
+    "source_hashes_verified": 33,
+    "request_response_hashes_verified": 12,
+    "matching_outcomes": 6,
+    "new_inference_calls": 0
+  },
+  "failure_analysis": [
+    {
+      "seed": 601,
+      "family": "find_replace",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 313,
+      "expected_lines": 40,
+      "output_lines": 40,
+      "unchanged_input": false,
+      "exact_replay": true,
+      "old_text_remaining": 0,
+      "expected_new_text_count": 15,
+      "actual_new_text_count": 32
+    },
+    {
+      "seed": 601,
+      "family": "sort_dedup_csv",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 148,
+      "expected_lines": 17,
+      "output_lines": 18,
+      "unchanged_input": false,
+      "exact_replay": true,
+      "header_correct": false,
+      "unique_output_rows": 13,
+      "output_rows": 17,
+      "expected_unique_rows": 16
+    },
+    {
+      "seed": 701,
+      "family": "find_replace",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 439,
+      "expected_lines": 40,
+      "output_lines": 40,
+      "unchanged_input": false,
+      "exact_replay": true,
+      "old_text_remaining": 16,
+      "expected_new_text_count": 19,
+      "actual_new_text_count": 24
+    },
+    {
+      "seed": 701,
+      "family": "sort_dedup_csv",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 98,
+      "expected_lines": 6,
+      "output_lines": 11,
+      "unchanged_input": false,
+      "exact_replay": true,
+      "header_correct": true,
+      "unique_output_rows": 5,
+      "output_rows": 10,
+      "expected_unique_rows": 5
+    },
+    {
+      "seed": 809,
+      "family": "find_replace",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 443,
+      "expected_lines": 40,
+      "output_lines": 40,
+      "unchanged_input": false,
+      "exact_replay": true,
+      "old_text_remaining": 0,
+      "expected_new_text_count": 12,
+      "actual_new_text_count": 40
+    },
+    {
+      "seed": 809,
+      "family": "sort_dedup_csv",
+      "action_valid": true,
+      "accepted": false,
+      "finish_reason": "stop",
+      "generated_tokens": 121,
+      "expected_lines": 11,
+      "output_lines": 15,
+      "unchanged_input": true,
+      "exact_replay": true,
+      "header_correct": true,
+      "unique_output_rows": 10,
+      "output_rows": 14,
+      "expected_unique_rows": 10
+    }
+  ]
+}
