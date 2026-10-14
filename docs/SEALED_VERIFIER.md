@@ -52,6 +52,14 @@ python -m benchmarks.sealed_verifier \
 
 The gate requires the legitimate loop to pass v1 and v2, the no-op to fail both, the public-v1 lookup to pass v1 and fail the fresh sealed panel, and a post-freeze program tailored to the revealed cases to be rejected before any case executes. Each inspected local case has a five-second timeout. Preserve a failed gate and the full artifact rather than selecting a replacement secret.
 
+## Recorded Mac results
+
+The first clean-source challenge, `gymforge-mac-20261014-1`, used the original two-second case timeout and failed its gate. The legitimate v1 program and v1 lookup each timed out on their first case; the legitimate sealed control passed. The complete [failed artifact](../results/sealed-verifier-v2-failed-timeout.json) is retained rather than discarded.
+
+The runner timeout was then changed and committed as a new five-second retry protocol. Challenge `gymforge-mac-20261014-2` started from clean commit `f706046c7eee9a52ddba767855ab14ce2e1057bc`; every recorded source hash was independently matched to that commit. The legitimate loop passed v1 and sealed panels, the no-op failed both, the published-v1 lookup passed v1 and failed the sealed panel, and the post-freeze rewrite executed zero cases. The [summary](../results/sealed-verifier-v2-summary.json) links the full artifact and the preserved failed run.
+
+This is a frozen retry after an observed timing failure, not independent confirmatory evidence. Both runs used `unsafe-local` with inspected fixtures because Docker is unavailable on the validation Mac.
+
 ## Evidence boundary and next gate
 
 The local runner has one legitimate implementation and two controls. It tests protocol mechanics and a known exploit, not the rate at which unseen adversaries evade the verifier. The twelve cases still cover only canonical decimal integer addition. A malicious program can identify its runtime environment, write auxiliary files, race trusted-side path checks, self-modify and restore bytes between observations, exploit the execution boundary, or implement addition only on the sampled domain. Commit–reveal does not validate task instructions, detect model pretraining contamination, or make terminal tasks representative of browser or desktop computer use.

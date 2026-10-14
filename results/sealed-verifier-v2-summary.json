@@ -1,0 +1,31 @@
+{
+  "protocol": "sum-script-commit-freeze-reveal-v2",
+  "challenge_id": "gymforge-mac-20261014-2",
+  "source_commit": "f706046c7eee9a52ddba767855ab14ce2e1057bc",
+  "source_clean_at_start": true,
+  "source_hashes_verified_against_commit": true,
+  "backend": "unsafe-local",
+  "python": "3.14.2",
+  "case_timeout_seconds": 5,
+  "raw_artifact": "results/sealed-verifier-v2.json",
+  "raw_artifact_sha256": "6b5eef1ee677fc04916f80306c9a7a015bd45ea49a82e545e097cb12513ec473",
+  "summary": {
+    "legitimate_v1_pass": true,
+    "legitimate_sealed_pass": true,
+    "noop_v1_pass": false,
+    "noop_sealed_pass": false,
+    "published_lookup_v1_pass": true,
+    "published_lookup_sealed_pass": false,
+    "post_freeze_rewrite_executed_cases": 0,
+    "gate_passed": true
+  },
+  "preserved_prior_failure": {
+    "artifact": "results/sealed-verifier-v2-failed-timeout.json",
+    "sha256": "21dff788bbb59e90e6db218d716a8a441a795275c3dfa92d92cb20e1da31d3c3",
+    "source_commit": "636d8aa281ae06c0205792e28aef270f983ca92f",
+    "case_timeout_seconds": 2,
+    "gate_passed": false,
+    "observed_failure": "One first-case timeout rejected the legitimate v1 program and one rejected the v1 lookup; the sealed legitimate control passed."
+  },
+  "interpretation": "Frozen retry after preserving the initial timing failure. The successful run validates the local protocol gate for one inspected legitimate program and two controls; it is not a learned-agent result, an unseen-adversary estimate, a Docker result or evidence about GUI task validity."
+}
