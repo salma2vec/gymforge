@@ -8,13 +8,21 @@ This is a finite test panel, not a proof against adaptive adversaries.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import os
 import random
+import re
 import shlex
 from pathlib import Path
 
 from gymforge.core.execution import run_command, workspace_path
 from gymforge.core.task import TaskSpec
+
+SEALED_PROTOCOL = "sum-script-holdout-v2"
+_COMMIT_DOMAIN = b"gymforge/sum-script-holdout-v2/commit\0"
+_CASE_DOMAIN = b"gymforge/sum-script-holdout-v2/cases\0"
+_CHALLENGE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
+_SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def sum_script_cases(seed: int) -> list[list[int]]:
@@ -29,26 +37,92 @@ def sum_script_cases(seed: int) -> list[list[int]]:
     return cases
 
 
-def grade_sum_script(task: TaskSpec, workdir: str, verifier_seed: int,
-                     backend: str = "docker", timeout: float = 2) -> dict:
-    """Grade frozen submitted bytes without revealing cases to the policy first.
+def _validate_sealed_inputs(challenge_id: str, secret: bytes) -> None:
+    if not isinstance(challenge_id, str) or not _CHALLENGE_ID.fullmatch(challenge_id):
+        raise ValueError("Challenge ID must be 1-128 ASCII letters, digits, dots, dashes or underscores")
+    if not isinstance(secret, bytes) or len(secret) != 32:
+        raise ValueError("Verifier secret must contain exactly 32 bytes")
 
-    Uses the same execution boundary as ordinary evaluation. ``unsafe-local`` is
-    only for inspected trusted fixtures. Do not use it for model-produced code.
-    """
+
+def commit_sum_script_challenge(challenge_id: str, secret: bytes) -> str:
+    """Commit to a fresh verifier secret without revealing it to submissions."""
+    _validate_sealed_inputs(challenge_id, secret)
+    return hashlib.sha256(_COMMIT_DOMAIN + challenge_id.encode() + b"\0" + secret).hexdigest()
+
+
+def reveal_sum_script_challenge(challenge_id: str, secret: bytes) -> dict:
+    """Return the post-evaluation reveal needed to reproduce a sealed panel."""
+    return {
+        "protocol": SEALED_PROTOCOL,
+        "challenge_id": challenge_id,
+        "secret_hex": secret.hex(),
+        "commitment": commit_sum_script_challenge(challenge_id, secret),
+    }
+
+
+def _sealed_int(secret: bytes, challenge_id: str, label: str, low: int, high: int) -> int:
+    """Draw one unbiased bounded integer from domain-separated HMAC-SHA256 blocks."""
+    span = high - low + 1
+    limit = 2**64 - (2**64 % span)
+    for counter in range(256):
+        message = (_CASE_DOMAIN + challenge_id.encode() + b"\0" + label.encode()
+                   + b"\0" + counter.to_bytes(2, "big"))
+        value = int.from_bytes(hmac.digest(secret, message, "sha256")[:8], "big")
+        if value < limit:
+            return low + value % span
+    raise RuntimeError("Could not derive an unbiased verifier value")
+
+
+def sealed_sum_script_cases(challenge_id: str, secret: bytes) -> list[list[int]]:
+    """Derive twelve replayable cases from a committed 256-bit secret."""
+    _validate_sealed_inputs(challenge_id, secret)
+    cases = [
+        [],
+        [-_sealed_int(secret, challenge_id, "singleton", 1, 1000)],
+        [
+            _sealed_int(secret, challenge_id, "mixed-positive", 1, 50),
+            -_sealed_int(secret, challenge_id, "mixed-negative", 51, 1000),
+        ],
+        [_sealed_int(secret, challenge_id, f"long/{position}", -1000, 1000)
+         for position in range(12)],
+    ]
+    for case_index in range(8):
+        length = _sealed_int(secret, challenge_id, f"random/{case_index}/length", 0, 12)
+        cases.append([
+            _sealed_int(secret, challenge_id, f"random/{case_index}/{position}", -1000, 1000)
+            for position in range(length)
+        ])
+    return cases
+
+
+def _submission(task: TaskSpec, workdir: str) -> Path:
     if task.metadata.get("template") != "write_bash_script":
         raise ValueError("Holdout verifier supports only write_bash_script tasks")
-    cases = sum_script_cases(verifier_seed)
-    relative = task.success_criteria.get("expected_file")
-    path = workspace_path(workdir, relative)
-    result = {"protocol": "sum-script-holdout-v1", "verifier_seed": verifier_seed,
-              "backend": backend, "accepted": False, "cases": []}
+    return workspace_path(workdir, task.success_criteria.get("expected_file"))
+
+
+def freeze_sum_script_submission(task: TaskSpec, workdir: str) -> str:
+    """Hash an executable submission before the verifier secret is revealed."""
+    path = _submission(task, workdir)
+    if not path.is_file() or path.stat().st_size > 65536 or not os.access(path, os.X_OK):
+        raise ValueError("Submission must be an executable regular file of at most 65536 bytes")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _grade_cases(task: TaskSpec, workdir: str, cases: list[list[int]], result: dict,
+                 backend: str, timeout: float, frozen_submission_sha256: str | None = None) -> dict:
+    path = _submission(task, workdir)
     if not path.is_file() or path.stat().st_size > 65536 or not os.access(path, os.X_OK):
         return {**result, "error": "Missing, oversized or non-executable submission"}
     original = path.read_bytes()
-    result["submission_sha256"] = hashlib.sha256(original).hexdigest()
+    submission_sha256 = hashlib.sha256(original).hexdigest()
+    result["submission_sha256"] = submission_sha256
+    if frozen_submission_sha256 is not None and not hmac.compare_digest(
+            submission_sha256, frozen_submission_sha256):
+        return {**result, "error": "Submission does not match its frozen SHA-256 digest"}
     for arguments in cases:
-        command = shlex.join(["./" + str(Path(relative)), *map(str, arguments)])
+        relative = Path(task.success_criteria["expected_file"])
+        command = shlex.join(["./" + str(relative), *map(str, arguments)])
         record = {"arguments": arguments, "expected": str(sum(arguments)), "passed": False}
         try:
             execution = run_command(command, workdir, timeout, backend)
@@ -62,3 +136,59 @@ def grade_sum_script(task: TaskSpec, workdir: str, verifier_seed: int,
         result["cases"].append(record)
     result["accepted"] = all(case["passed"] for case in result["cases"])
     return result
+
+
+def grade_sum_script(task: TaskSpec, workdir: str, verifier_seed: int,
+                     backend: str = "docker", timeout: float = 2) -> dict:
+    """Grade frozen submitted bytes without revealing cases to the policy first.
+
+    Uses the same execution boundary as ordinary evaluation. ``unsafe-local`` is
+    only for inspected trusted fixtures. Do not use it for model-produced code.
+    """
+    cases = sum_script_cases(verifier_seed)
+    result = {"protocol": "sum-script-holdout-v1", "verifier_seed": verifier_seed,
+              "backend": backend, "accepted": False, "cases": []}
+    return _grade_cases(task, workdir, cases, result, backend, timeout)
+
+
+def grade_sealed_sum_script(
+    task: TaskSpec,
+    workdir: str,
+    challenge_id: str,
+    secret: bytes,
+    expected_commitment: str,
+    frozen_submission_sha256: str,
+    backend: str = "docker",
+    timeout: float = 2,
+) -> dict:
+    """Grade bytes frozen before a committed verifier secret is revealed.
+
+    A valid run publishes ``expected_commitment``, freezes every submission hash,
+    grades while ``secret`` remains private, and reveals the secret only after the
+    complete batch finishes. A revealed challenge must never be reused.
+    """
+    actual_commitment = commit_sum_script_challenge(challenge_id, secret)
+    if not isinstance(expected_commitment, str) or not _SHA256.fullmatch(expected_commitment):
+        raise ValueError("Expected commitment must be a lowercase SHA-256 digest")
+    if not hmac.compare_digest(actual_commitment, expected_commitment):
+        raise ValueError("Verifier secret does not match the published commitment")
+    if (not isinstance(frozen_submission_sha256, str)
+            or not _SHA256.fullmatch(frozen_submission_sha256)):
+        raise ValueError("Frozen submission must be a lowercase SHA-256 digest")
+    result = {
+        "protocol": SEALED_PROTOCOL,
+        "challenge_id": challenge_id,
+        "commitment": expected_commitment,
+        "backend": backend,
+        "accepted": False,
+        "cases": [],
+    }
+    return _grade_cases(
+        task,
+        workdir,
+        sealed_sum_script_cases(challenge_id, secret),
+        result,
+        backend,
+        timeout,
+        frozen_submission_sha256,
+    )
