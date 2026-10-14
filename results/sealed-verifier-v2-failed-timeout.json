@@ -1,0 +1,1240 @@
+{
+  "protocol": "sum-script-commit-freeze-reveal-v2",
+  "python": "3.14.2",
+  "source_commit": "636d8aa281ae06c0205792e28aef270f983ca92f",
+  "source_hashes": {
+    "gymforge/evaluation/holdout.py": "9fcb47d8f1ec38c167343afa81b1352cc463117f6a007b1e062f7a204fc8514f",
+    "benchmarks/sealed_verifier.py": "d52524d20a1c785f3dfd4d8ad015cca9e955a8666d46cd298e81c21fc776a3cc",
+    "docs/SEALED_VERIFIER.md": "e06e68209404efcdbe3628581e0312289acb2a963b0de1da736c1a3323947172"
+  },
+  "backend": "unsafe-local",
+  "task_seed": 101,
+  "task_id": "d8ae54b356180649209ac13f",
+  "published_v1_seed": 900101,
+  "challenge": {
+    "challenge_id": "gymforge-mac-20261014-1",
+    "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16"
+  },
+  "frozen_before_grading": {
+    "bash_loop": "ed452116fbc2c0b2df66d9cd9cd633a883361a0b345bf02c668cf4c290392175",
+    "noop": "c87c7a722d59a266b300850637a1cb77b46cc67c5add8a66aa9e79e198955808",
+    "published_v1_lookup": "fe0e0d8ab10bc12cbf53f3810fd402276f17f3d150099f535f3b9b54482c3c61"
+  },
+  "rows": [
+    {
+      "program": "bash_loop",
+      "legitimate": true,
+      "source": "#!/bin/bash\ns=0\nfor x in \"$@\"; do s=$((s+x)); done\nprintf \"%s\\n\" \"$s\"\n",
+      "frozen_submission_sha256": "ed452116fbc2c0b2df66d9cd9cd633a883361a0b345bf02c668cf4c290392175",
+      "v1": {
+        "protocol": "sum-script-holdout-v1",
+        "verifier_seed": 900101,
+        "backend": "unsafe-local",
+        "accepted": false,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "Command timed out after 2s",
+            "exit_code": -1,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -689
+            ],
+            "expected": "-689",
+            "passed": true,
+            "stdout": "-689\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              39,
+              -317
+            ],
+            "expected": "-278",
+            "passed": true,
+            "stdout": "-278\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -74,
+              179,
+              584,
+              -87,
+              421,
+              631,
+              350,
+              768,
+              456,
+              583,
+              769,
+              -174
+            ],
+            "expected": "4406",
+            "passed": true,
+            "stdout": "4406\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              558,
+              523,
+              667,
+              643,
+              -664,
+              -680,
+              385
+            ],
+            "expected": "1432",
+            "passed": true,
+            "stdout": "1432\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -507,
+              -375,
+              375,
+              -907,
+              677,
+              535,
+              257,
+              879
+            ],
+            "expected": "934",
+            "passed": true,
+            "stdout": "934\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              193,
+              -441,
+              410,
+              541,
+              548,
+              331,
+              296
+            ],
+            "expected": "1878",
+            "passed": true,
+            "stdout": "1878\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -841,
+              -923,
+              -467,
+              -632,
+              322,
+              -363
+            ],
+            "expected": "-2904",
+            "passed": true,
+            "stdout": "-2904\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -943,
+              -633,
+              -302,
+              -281,
+              -833
+            ],
+            "expected": "-2992",
+            "passed": true,
+            "stdout": "-2992\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -810
+            ],
+            "expected": "-810",
+            "passed": true,
+            "stdout": "-810\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              849,
+              258,
+              231,
+              823,
+              -347,
+              -988,
+              -493,
+              -482,
+              -293,
+              206,
+              476
+            ],
+            "expected": "240",
+            "passed": true,
+            "stdout": "240\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "ed452116fbc2c0b2df66d9cd9cd633a883361a0b345bf02c668cf4c290392175"
+      },
+      "sealed": {
+        "protocol": "sum-script-holdout-v2",
+        "challenge_id": "gymforge-mac-20261014-1",
+        "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16",
+        "backend": "unsafe-local",
+        "accepted": true,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -331
+            ],
+            "expected": "-331",
+            "passed": true,
+            "stdout": "-331\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              9,
+              -763
+            ],
+            "expected": "-754",
+            "passed": true,
+            "stdout": "-754\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              535,
+              196,
+              -128,
+              -807,
+              863,
+              -535,
+              444,
+              37,
+              834,
+              -673,
+              100,
+              801
+            ],
+            "expected": "1667",
+            "passed": true,
+            "stdout": "1667\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              509,
+              560,
+              -750,
+              803,
+              680,
+              580
+            ],
+            "expected": "2382",
+            "passed": true,
+            "stdout": "2382\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              885,
+              297,
+              740,
+              226,
+              555,
+              -15,
+              774
+            ],
+            "expected": "3462",
+            "passed": true,
+            "stdout": "3462\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -141,
+              245,
+              -113,
+              -836,
+              985,
+              636,
+              51,
+              -830,
+              -726,
+              585,
+              -365,
+              769
+            ],
+            "expected": "260",
+            "passed": true,
+            "stdout": "260\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -931,
+              519,
+              224,
+              -23,
+              416,
+              115,
+              758,
+              156,
+              -339,
+              436,
+              747,
+              728
+            ],
+            "expected": "2806",
+            "passed": true,
+            "stdout": "2806\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              725,
+              76,
+              481
+            ],
+            "expected": "1282",
+            "passed": true,
+            "stdout": "1282\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -688,
+              546,
+              -858,
+              49,
+              -488,
+              -169,
+              -751,
+              -306,
+              193,
+              411,
+              291,
+              -572
+            ],
+            "expected": "-2342",
+            "passed": true,
+            "stdout": "-2342\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              343,
+              -918,
+              512,
+              -892,
+              327,
+              -736,
+              -463,
+              -38
+            ],
+            "expected": "-1865",
+            "passed": true,
+            "stdout": "-1865\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "ed452116fbc2c0b2df66d9cd9cd633a883361a0b345bf02c668cf4c290392175"
+      }
+    },
+    {
+      "program": "noop",
+      "legitimate": false,
+      "source": "#!/bin/bash\nexit 0\n",
+      "frozen_submission_sha256": "c87c7a722d59a266b300850637a1cb77b46cc67c5add8a66aa9e79e198955808",
+      "v1": {
+        "protocol": "sum-script-holdout-v1",
+        "verifier_seed": 900101,
+        "backend": "unsafe-local",
+        "accepted": false,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -689
+            ],
+            "expected": "-689",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              39,
+              -317
+            ],
+            "expected": "-278",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -74,
+              179,
+              584,
+              -87,
+              421,
+              631,
+              350,
+              768,
+              456,
+              583,
+              769,
+              -174
+            ],
+            "expected": "4406",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              558,
+              523,
+              667,
+              643,
+              -664,
+              -680,
+              385
+            ],
+            "expected": "1432",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -507,
+              -375,
+              375,
+              -907,
+              677,
+              535,
+              257,
+              879
+            ],
+            "expected": "934",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              193,
+              -441,
+              410,
+              541,
+              548,
+              331,
+              296
+            ],
+            "expected": "1878",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -841,
+              -923,
+              -467,
+              -632,
+              322,
+              -363
+            ],
+            "expected": "-2904",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -943,
+              -633,
+              -302,
+              -281,
+              -833
+            ],
+            "expected": "-2992",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -810
+            ],
+            "expected": "-810",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              849,
+              258,
+              231,
+              823,
+              -347,
+              -988,
+              -493,
+              -482,
+              -293,
+              206,
+              476
+            ],
+            "expected": "240",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "c87c7a722d59a266b300850637a1cb77b46cc67c5add8a66aa9e79e198955808"
+      },
+      "sealed": {
+        "protocol": "sum-script-holdout-v2",
+        "challenge_id": "gymforge-mac-20261014-1",
+        "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16",
+        "backend": "unsafe-local",
+        "accepted": false,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -331
+            ],
+            "expected": "-331",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              9,
+              -763
+            ],
+            "expected": "-754",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              535,
+              196,
+              -128,
+              -807,
+              863,
+              -535,
+              444,
+              37,
+              834,
+              -673,
+              100,
+              801
+            ],
+            "expected": "1667",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              509,
+              560,
+              -750,
+              803,
+              680,
+              580
+            ],
+            "expected": "2382",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              885,
+              297,
+              740,
+              226,
+              555,
+              -15,
+              774
+            ],
+            "expected": "3462",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -141,
+              245,
+              -113,
+              -836,
+              985,
+              636,
+              51,
+              -830,
+              -726,
+              585,
+              -365,
+              769
+            ],
+            "expected": "260",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -931,
+              519,
+              224,
+              -23,
+              416,
+              115,
+              758,
+              156,
+              -339,
+              436,
+              747,
+              728
+            ],
+            "expected": "2806",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              725,
+              76,
+              481
+            ],
+            "expected": "1282",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -688,
+              546,
+              -858,
+              49,
+              -488,
+              -169,
+              -751,
+              -306,
+              193,
+              411,
+              291,
+              -572
+            ],
+            "expected": "-2342",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              343,
+              -918,
+              512,
+              -892,
+              327,
+              -736,
+              -463,
+              -38
+            ],
+            "expected": "-1865",
+            "passed": false,
+            "stdout": "",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "c87c7a722d59a266b300850637a1cb77b46cc67c5add8a66aa9e79e198955808"
+      }
+    },
+    {
+      "program": "published_v1_lookup",
+      "legitimate": false,
+      "source": "#!/bin/bash\nexec python3 -c \"import sys; table={(): '0', (-689,): '-689', (39, -317): '-278', (-74, 179, 584, -87, 421, 631, 350, 768, 456, 583, 769, -174): '4406', (558, 523, 667, 643, -664, -680, 385): '1432', (-507, -375, 375, -907, 677, 535, 257, 879): '934', (193, -441, 410, 541, 548, 331, 296): '1878', (-841, -923, -467, -632, 322, -363): '-2904', (-943, -633, -302, -281, -833): '-2992', (-810,): '-810', (849, 258, 231, 823, -347, -988, -493, -482, -293, 206, 476): '240'}; print(table.get(tuple(map(int, sys.argv[1:])), '0'))\" \"$@\"\n",
+      "frozen_submission_sha256": "fe0e0d8ab10bc12cbf53f3810fd402276f17f3d150099f535f3b9b54482c3c61",
+      "v1": {
+        "protocol": "sum-script-holdout-v1",
+        "verifier_seed": 900101,
+        "backend": "unsafe-local",
+        "accepted": false,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": false,
+            "stdout": "",
+            "stderr": "Command timed out after 2s",
+            "exit_code": -1,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -689
+            ],
+            "expected": "-689",
+            "passed": true,
+            "stdout": "-689\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              39,
+              -317
+            ],
+            "expected": "-278",
+            "passed": true,
+            "stdout": "-278\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -74,
+              179,
+              584,
+              -87,
+              421,
+              631,
+              350,
+              768,
+              456,
+              583,
+              769,
+              -174
+            ],
+            "expected": "4406",
+            "passed": true,
+            "stdout": "4406\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              558,
+              523,
+              667,
+              643,
+              -664,
+              -680,
+              385
+            ],
+            "expected": "1432",
+            "passed": true,
+            "stdout": "1432\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -507,
+              -375,
+              375,
+              -907,
+              677,
+              535,
+              257,
+              879
+            ],
+            "expected": "934",
+            "passed": true,
+            "stdout": "934\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              193,
+              -441,
+              410,
+              541,
+              548,
+              331,
+              296
+            ],
+            "expected": "1878",
+            "passed": true,
+            "stdout": "1878\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -841,
+              -923,
+              -467,
+              -632,
+              322,
+              -363
+            ],
+            "expected": "-2904",
+            "passed": true,
+            "stdout": "-2904\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -943,
+              -633,
+              -302,
+              -281,
+              -833
+            ],
+            "expected": "-2992",
+            "passed": true,
+            "stdout": "-2992\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -810
+            ],
+            "expected": "-810",
+            "passed": true,
+            "stdout": "-810\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              849,
+              258,
+              231,
+              823,
+              -347,
+              -988,
+              -493,
+              -482,
+              -293,
+              206,
+              476
+            ],
+            "expected": "240",
+            "passed": true,
+            "stdout": "240\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "fe0e0d8ab10bc12cbf53f3810fd402276f17f3d150099f535f3b9b54482c3c61"
+      },
+      "sealed": {
+        "protocol": "sum-script-holdout-v2",
+        "challenge_id": "gymforge-mac-20261014-1",
+        "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16",
+        "backend": "unsafe-local",
+        "accepted": false,
+        "cases": [
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -331
+            ],
+            "expected": "-331",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              9,
+              -763
+            ],
+            "expected": "-754",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              535,
+              196,
+              -128,
+              -807,
+              863,
+              -535,
+              444,
+              37,
+              834,
+              -673,
+              100,
+              801
+            ],
+            "expected": "1667",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              509,
+              560,
+              -750,
+              803,
+              680,
+              580
+            ],
+            "expected": "2382",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              885,
+              297,
+              740,
+              226,
+              555,
+              -15,
+              774
+            ],
+            "expected": "3462",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [],
+            "expected": "0",
+            "passed": true,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -141,
+              245,
+              -113,
+              -836,
+              985,
+              636,
+              51,
+              -830,
+              -726,
+              585,
+              -365,
+              769
+            ],
+            "expected": "260",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -931,
+              519,
+              224,
+              -23,
+              416,
+              115,
+              758,
+              156,
+              -339,
+              436,
+              747,
+              728
+            ],
+            "expected": "2806",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              725,
+              76,
+              481
+            ],
+            "expected": "1282",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              -688,
+              546,
+              -858,
+              49,
+              -488,
+              -169,
+              -751,
+              -306,
+              193,
+              411,
+              291,
+              -572
+            ],
+            "expected": "-2342",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          },
+          {
+            "arguments": [
+              343,
+              -918,
+              512,
+              -892,
+              327,
+              -736,
+              -463,
+              -38
+            ],
+            "expected": "-1865",
+            "passed": false,
+            "stdout": "0\n",
+            "stderr": "",
+            "exit_code": 0,
+            "unchanged": true
+          }
+        ],
+        "submission_sha256": "fe0e0d8ab10bc12cbf53f3810fd402276f17f3d150099f535f3b9b54482c3c61"
+      }
+    }
+  ],
+  "post_freeze_adaptive_rewrite": {
+    "protocol": "sum-script-holdout-v2",
+    "challenge_id": "gymforge-mac-20261014-1",
+    "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16",
+    "backend": "unsafe-local",
+    "accepted": false,
+    "cases": [],
+    "submission_sha256": "5db797ac046e143eec7f576bd195433efc04d4b0367629986f0d9d5c2e79a3a6",
+    "error": "Submission does not match its frozen SHA-256 digest"
+  },
+  "reveal": {
+    "protocol": "sum-script-holdout-v2",
+    "challenge_id": "gymforge-mac-20261014-1",
+    "secret_hex": "6bb4dbfbda03e166c7d899a15e49c96d0264bdc5eab66bba4e2a1405b75b57fb",
+    "commitment": "41bbd17ffc929cc301e3f44fd8812c7e1d29ac6d5b36ad0bd71c603738bc9e16"
+  },
+  "summary": {
+    "legitimate_v1_pass": false,
+    "legitimate_sealed_pass": true,
+    "noop_v1_pass": false,
+    "noop_sealed_pass": false,
+    "published_lookup_v1_pass": false,
+    "published_lookup_sealed_pass": false,
+    "post_freeze_rewrite_executed_cases": 0,
+    "gate_passed": false
+  },
+  "interpretation": "One inspected legitimate program and two controls. This reproduces a concrete v1 leakage exploit and validates protocol mechanics; it is not an unseen-author false-accept estimate, a learned-agent result, or evidence about GUI task validity."
+}

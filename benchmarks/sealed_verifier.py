@@ -28,6 +28,7 @@ from gymforge.generation import TaskGenerator
 
 TASK_SEED = 101
 PUBLISHED_V1_SEED = 900000 + TASK_SEED
+CASE_TIMEOUT_SECONDS = 5
 
 
 def lookup_script(cases: list[list[int]]) -> str:
@@ -74,7 +75,9 @@ def run(challenge_id: str, backend: str) -> dict:
             frozen[name] = freeze_sum_script_submission(task, env.workdir)
 
         for name, legitimate, env, path in environments:
-            v1 = grade_sum_script(task, env.workdir, PUBLISHED_V1_SEED, backend)
+            v1 = grade_sum_script(
+                task, env.workdir, PUBLISHED_V1_SEED, backend, timeout=CASE_TIMEOUT_SECONDS
+            )
             sealed = grade_sealed_sum_script(
                 task,
                 env.workdir,
@@ -83,6 +86,7 @@ def run(challenge_id: str, backend: str) -> dict:
                 commitment,
                 frozen[name],
                 backend,
+                timeout=CASE_TIMEOUT_SECONDS,
             )
             rows.append({
                 "program": name,
@@ -108,6 +112,7 @@ def run(challenge_id: str, backend: str) -> dict:
             commitment,
             frozen[attack_name],
             backend,
+            timeout=CASE_TIMEOUT_SECONDS,
         )
     finally:
         for _, _, env, _ in environments:
@@ -140,6 +145,7 @@ def run(challenge_id: str, backend: str) -> dict:
         "task_seed": TASK_SEED,
         "task_id": task.id,
         "published_v1_seed": PUBLISHED_V1_SEED,
+        "case_timeout_seconds": CASE_TIMEOUT_SECONDS,
         "challenge": {"challenge_id": challenge_id, "commitment": commitment},
         "frozen_before_grading": frozen,
         "rows": rows,

@@ -50,7 +50,7 @@ python -m benchmarks.sealed_verifier \
 
 `unsafe-local` is only for the three inspected programs in the runner. Never use it for agent-produced code. Docker is the only supported GymForge backend for untrusted submissions; a serious evaluation should add a disposable VM boundary and must freeze all submissions before the secret is available to them.
 
-The gate requires the legitimate loop to pass v1 and v2, the no-op to fail both, the public-v1 lookup to pass v1 and fail the fresh sealed panel, and a post-freeze program tailored to the revealed cases to be rejected before any case executes. Preserve a failed gate and the full artifact rather than selecting a replacement secret.
+The gate requires the legitimate loop to pass v1 and v2, the no-op to fail both, the public-v1 lookup to pass v1 and fail the fresh sealed panel, and a post-freeze program tailored to the revealed cases to be rejected before any case executes. Each inspected local case has a five-second timeout. Preserve a failed gate and the full artifact rather than selecting a replacement secret.
 
 ## Evidence boundary and next gate
 
