@@ -9,8 +9,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
+from gymforge.core.execution import MAX_OUTPUT_BYTES, run_command
 from gymforge.core.task import TaskSpec
-from gymforge.core.execution import run_command, workspace_path, MAX_OUTPUT_BYTES
 from gymforge.envs import BashEnvironment, EditorEnvironment, PipelineEnvironment
 from gymforge.evaluation import Evaluator, OracleChecker
 from gymforge.evaluation.reference import reference_action
@@ -131,6 +132,9 @@ def test_editor_rejects_unsupported_criteria_even_when_file_matches(extra):
         {"expected_file": "answer.txt", "expected_file_exact": ["hello"]},
         {"expected_file": "answer.txt", "expected_file_content": None},
         {"expected_file": "answer.txt", "expected_file_hash": 1},
+        {"expected_file": "answer.txt", "expected_file_hash": "5d41402abc4b2a76b9719d911017c592"},
+        {"expected_file": "answer.txt", "expected_file_hash": "A" * 64},
+        {"expected_file": "answer.txt", "expected_file_hash": "g" * 64},
         {"expected_file": "answer.txt", "expected_file_executable": "false"},
     ],
 )
@@ -151,7 +155,7 @@ def test_editor_checks_all_supported_file_criteria_without_commands():
         "expected_file": "answer.txt",
         "expected_file_exact": "hello",
         "expected_file_content": "ell",
-        "expected_file_hash": hashlib.md5(b"hello").hexdigest(),
+        "expected_file_hash": hashlib.sha256(b"hello").hexdigest(),
         "expected_file_executable": True,
     }
     env = EditorEnvironment(task(success_criteria=criteria))

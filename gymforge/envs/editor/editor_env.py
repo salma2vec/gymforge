@@ -34,7 +34,7 @@ class EditorEnvironment(BaseEnvironment):
     - ``expected_file``: the file must exist.
     - ``expected_file_content``: a substring that must appear in the file.
     - ``expected_file_exact``: the file content must exactly match.
-    - ``expected_file_hash``: the file's MD5 digest must match.
+    - ``expected_file_hash``: the file's lowercase SHA-256 digest must match.
     - ``expected_file_executable``: if true, the file must have an executable bit.
 
     ``expected_file`` is required. Other criterion keys and invalid value types

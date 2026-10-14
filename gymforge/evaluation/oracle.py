@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import hashlib
+import re
 
 from gymforge.core.execution import run_command, workspace_path
 from gymforge.core.task import TaskSpec
+
+_SHA256_HEX = re.compile(r"[0-9a-f]{64}\Z")
 
 
 class OracleChecker:
@@ -68,6 +71,11 @@ class OracleChecker:
             for key in strings & criteria.keys()
         ):
             return False
+        if (
+            "expected_file_hash" in criteria
+            and not _SHA256_HEX.fullmatch(criteria["expected_file_hash"])
+        ):
+            return False
         file_requirements = {
             "expected_file_content",
             "expected_file_exact",
@@ -123,7 +131,7 @@ class OracleChecker:
             if "expected_file_content" in c:
                 checks.append(c["expected_file_content"].encode() in data)
             if "expected_file_hash" in c:
-                checks.append(hashlib.md5(data).hexdigest() == c["expected_file_hash"])
+                checks.append(hashlib.sha256(data).hexdigest() == c["expected_file_hash"])
             if "expected_file_executable" in c:
                 checks.append(bool(path.stat().st_mode & 0o111) == c["expected_file_executable"])
             passed = all(checks)

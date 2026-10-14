@@ -1,5 +1,6 @@
 """Verifier requirements must never disappear through malformed task schemas."""
 
+import hashlib
 import os
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -30,6 +31,9 @@ def task(criteria, **kwargs):
         {"script_cases": []},
         {"script_cases": [{"command": "true", "expected": "", "ignored_requirement": False}]},
         {"expected_file": "answer", "expected_file_exact": ["required"]},
+        {"expected_file": "answer", "expected_file_hash": "0" * 32},
+        {"expected_file": "answer", "expected_file_hash": "A" * 64},
+        {"expected_file": "answer", "expected_file_hash": "g" * 64},
         {"oracle_command": ""},
         {"exit_code": False},
     ],
@@ -69,6 +73,21 @@ def test_explicit_empty_oracle_output_is_not_ignored(tmp_path):
     spec = task({"rubric": [{"type": "oracle_command", "command": "printf wrong", "expected": ""}]})
     result = RubricChecker(backend="unsafe-local").check(spec, str(tmp_path), "", 0)
     assert not result.passed
+
+
+def test_file_hash_is_lowercase_sha256_and_legacy_md5_fails_closed(tmp_path):
+    data = b"artifact contents"
+    (tmp_path / "answer").write_bytes(data)
+    checker = OracleChecker()
+    valid = task({"expected_file": "answer", "expected_file_hash": hashlib.sha256(data).hexdigest()})
+    assert checker.check_file(valid, str(tmp_path))[0]
+    for invalid in ("0" * 32, "A" * 64, "g" * 64, "0" * 63):
+        spec = task({"expected_file": "answer", "expected_file_hash": invalid})
+        assert checker.check_file(spec, str(tmp_path)) == (
+            False,
+            0.0,
+            "invalid or missing expected_file criterion",
+        )
 
 
 def test_pipeline_checks_final_criteria_after_stage_credit():
