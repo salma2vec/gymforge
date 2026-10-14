@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+import os
 from pathlib import Path
 
 from gymforge.envs.terminal.bash_env import BashEnvironment
+
+MAX_SNAPSHOT_ENTRIES = 1000
+MAX_SNAPSHOT_BYTES = 16 * 1_048_576
+MAX_SNAPSHOT_FILE_BYTES = 1_048_576
 
 
 class FileSystemEnvironment(BashEnvironment):
@@ -23,18 +28,50 @@ class FileSystemEnvironment(BashEnvironment):
 
     def _snapshot(self):
         result = {}
-        for path in sorted(Path(self.workdir).rglob("*")):
-            if path.is_symlink() or not path.is_file():
-                continue
-            if len(result) >= 1000:
-                result["<truncated>"] = "file limit reached"
-                break
-            key = str(path.relative_to(self.workdir))
-            if path.stat().st_size > 1_048_576:
-                result[key] = "<exceeds snapshot limit>"
-            else:
-                result[key] = hashlib.sha256(path.read_bytes()).hexdigest()
-        return result
+        total_bytes = 0
+        visited = 0
+        pending = [Path(self.workdir)]
+        # pathlib.rglob may materialize a whole directory before yielding on
+        # supported Python versions. Consume scandir entries within our budget.
+        while pending:
+            directory = pending.pop()
+            try:
+                with os.scandir(directory) as entries:
+                    for entry in entries:
+                        if visited >= MAX_SNAPSHOT_ENTRIES:
+                            result["<truncated>"] = "entry limit reached"
+                            return dict(sorted(result.items()))
+                        visited += 1
+                        path = Path(entry.path)
+                        key = str(path.relative_to(self.workdir))
+                        try:
+                            if entry.is_symlink():
+                                continue
+                            if entry.is_dir(follow_symlinks=False):
+                                pending.append(path)
+                                continue
+                            if not entry.is_file(follow_symlinks=False):
+                                continue
+                            if entry.stat(follow_symlinks=False).st_size > MAX_SNAPSHOT_FILE_BYTES:
+                                result[key] = "<exceeds snapshot limit>"
+                                continue
+                            remaining = MAX_SNAPSHOT_BYTES - total_bytes
+                            limit = min(MAX_SNAPSHOT_FILE_BYTES, remaining)
+                            with path.open("rb") as handle:
+                                data = handle.read(limit + 1)
+                            if len(data) > remaining:
+                                result["<truncated>"] = "aggregate byte limit reached"
+                                return dict(sorted(result.items()))
+                            if len(data) > MAX_SNAPSHOT_FILE_BYTES:
+                                result[key] = "<exceeds snapshot limit>"
+                                continue
+                            total_bytes += len(data)
+                            result[key] = hashlib.sha256(data).hexdigest()
+                        except OSError:
+                            result[key] = "<unreadable>"
+            except OSError:
+                result[str(directory.relative_to(self.workdir))] = "<unreadable>"
+        return dict(sorted(result.items()))
 
     @staticmethod
     def _delta(old, new):

@@ -16,20 +16,8 @@ class OracleChecker:
         self, task_spec: TaskSpec, workdir: str, stdout: str, exit_code: int
     ) -> tuple[bool, float, str]:
         c = task_spec.success_criteria
-        known = {
-            "expected_output",
-            "exit_code",
-            "oracle_command",
-            "oracle_expected",
-            "expected_file",
-            "expected_file_content",
-            "expected_file_exact",
-            "expected_file_hash",
-            "expected_file_executable",
-            "script_cases",
-        }
-        if not c or set(c) - known:
-            return False, 0.0, "missing or unrecognised success criteria"
+        if not self._valid_criteria(c):
+            return False, 0.0, "missing, invalid or unrecognised success criteria"
         checks = []
         if "expected_output" in c:
             checks.append(exit_code == 0 and str(c["expected_output"]).strip() == stdout.strip())
@@ -60,10 +48,70 @@ class OracleChecker:
             "all criteria satisfied" if passed else "criteria not satisfied",
         )
 
+    @staticmethod
+    def _valid_criteria(criteria: dict) -> bool:
+        """Validate every requirement before running any verifier commands."""
+        strings = {
+            "expected_output",
+            "oracle_command",
+            "oracle_expected",
+            "expected_file",
+            "expected_file_content",
+            "expected_file_exact",
+            "expected_file_hash",
+        }
+        known = strings | {"exit_code", "expected_file_executable", "script_cases"}
+        if not criteria or set(criteria) - known:
+            return False
+        if any(
+            not isinstance(criteria[key], str) or len(criteria[key]) > 1_048_576
+            for key in strings & criteria.keys()
+        ):
+            return False
+        file_requirements = {
+            "expected_file_content",
+            "expected_file_exact",
+            "expected_file_hash",
+            "expected_file_executable",
+        }
+        if file_requirements & criteria.keys() and "expected_file" not in criteria:
+            return False
+        if "expected_file" in criteria and not criteria["expected_file"]:
+            return False
+        if "oracle_expected" in criteria and "oracle_command" not in criteria:
+            return False
+        if "oracle_command" in criteria and (
+            not criteria["oracle_command"].strip() or len(criteria["oracle_command"]) > 100_000
+        ):
+            return False
+        if "exit_code" in criteria and type(criteria["exit_code"]) is not int:
+            return False
+        if (
+            "expected_file_executable" in criteria
+            and type(criteria["expected_file_executable"]) is not bool
+        ):
+            return False
+        if "script_cases" in criteria:
+            cases = criteria["script_cases"]
+            if not isinstance(cases, list) or not 1 <= len(cases) <= 100:
+                return False
+            for case in cases:
+                if not isinstance(case, dict) or set(case) != {"command", "expected"}:
+                    return False
+                if (
+                    not isinstance(case["command"], str)
+                    or not case["command"].strip()
+                    or len(case["command"]) > 100_000
+                    or not isinstance(case["expected"], str)
+                    or len(case["expected"]) > 1_048_576
+                ):
+                    return False
+        return True
+
     def check_file(self, task_spec: TaskSpec, workdir: str) -> tuple[bool, float, str]:
         c = task_spec.success_criteria
-        if "expected_file" not in c:
-            return False, 0.0, "no expected_file criterion"
+        if not self._valid_criteria(c) or "expected_file" not in c:
+            return False, 0.0, "invalid or missing expected_file criterion"
         try:
             path = workspace_path(workdir, c["expected_file"])
             if not path.is_file() or path.stat().st_size > 1_048_576:
@@ -76,8 +124,8 @@ class OracleChecker:
                 checks.append(c["expected_file_content"].encode() in data)
             if "expected_file_hash" in c:
                 checks.append(hashlib.md5(data).hexdigest() == c["expected_file_hash"])
-            if c.get("expected_file_executable"):
-                checks.append(bool(path.stat().st_mode & 0o111))
+            if "expected_file_executable" in c:
+                checks.append(bool(path.stat().st_mode & 0o111) == c["expected_file_executable"])
             passed = all(checks)
             return passed, float(passed), "file criteria checked"
         except (OSError, ValueError):

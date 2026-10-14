@@ -24,7 +24,12 @@ class PipelineEnvironment(BashEnvironment):
                 break
             self._completed_stages.append(stage["name"])
             self._new_stages += 1
-        return len(self._completed_stages) == len(self._stages)
+        stages_passed = len(self._completed_stages) == len(self._stages)
+        # Stage credit records completed work. Declared final criteria must also
+        # hold before the episode can be marked successful.
+        return stages_passed and (
+            not self.task_spec.success_criteria or super()._check_success(obs)
+        )
 
     def step(self, action):
         obs, _, done, info = super().step(action)

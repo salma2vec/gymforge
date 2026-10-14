@@ -79,7 +79,7 @@ finally:
 
 ## Verifiers and reproducibility
 
-All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown binary criterion keys fail closed. The editor requires `expected_file` and accepts only file criteria with valid value types; it rejects command, output, and rubric criteria. Rubrics explicitly support partial credit and `output_contains` when a substring is intended.
+All specified binary criteria must pass. Output criteria compare trimmed text exactly and require a successful command; file criteria support existence, exact content, substring content, hash, and executable mode. Custom oracle commands execute through the selected backend. Unknown keys, invalid types, and orphan requirements (such as file content without a file path) fail closed before verifier commands run. The editor requires `expected_file` and accepts only file criteria with valid value types; it rejects command, output, and rubric criteria. Rubrics explicitly support partial credit and `output_contains` when a substring is intended; each item needs an explicit type and its required fields, and rubric and binary criteria cannot be mixed. Pipelines retain earned stage credit but also require any declared final binary criteria before reporting success.
 
 Generated files and answers agree: replacement tasks check both the count and edited content; CSV tasks compare a canonical sorted/deduplicated output; script tasks execute multiple argument cases. Output-only tasks still admit answer guessing, and script cases are public. These fixtures are not a hidden test set or a proof against adversarial reward hacking.
 
@@ -88,6 +88,10 @@ The same generator seed and template version produce identical complete task JSO
 ## Execution boundary
 
 The Docker backend uses no network, an unprivileged UID, a read-only root, dropped capabilities, no-new-privileges, limits on CPU/memory/PIDs/file size, and one writable task-workspace mount. It caps captured output at 1 MiB and removes the container on timeout. Set `GYMFORGE_IMAGE` to a locally available immutable image digest for a reproducible environment.
+
+File-hash observations traverse at most 1,000 workspace entries, hash at most
+1 MiB per file and 16 MiB in total, and report truncation when those limits apply.
+These observation limits do not impose a disk quota on the workspace.
 
 Containers share the host kernel. This is not a hardened multi-tenant service; run hostile workloads on a dedicated disposable VM with disk quotas. The writable workspace can consume host disk across many files. `unsafe-local` has no filesystem/network isolation even though inherited secrets are stripped and output/time are bounded. Editor path confinement assumes no concurrent hostile process changing workspace symlinks.
 

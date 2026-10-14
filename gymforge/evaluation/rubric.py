@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import math
 import os
 import subprocess
 from dataclasses import dataclass, field
 
-from gymforge.core.task import TaskSpec
 from gymforge.core.execution import run_command, workspace_path
+from gymforge.core.task import TaskSpec
 from gymforge.evaluation.oracle import OracleChecker
 
 
@@ -95,10 +96,20 @@ class RubricChecker:
     ) -> RubricResult:
         """Apply the rubric and return a ``RubricResult`` with per-item scores."""
         rubric = task_spec.success_criteria.get("rubric", [])
-        if not rubric:
+        if "rubric" not in task_spec.success_criteria:
             # Fall back to simple binary check
             item = self._binary_check(task_spec, workdir, stdout, exit_code)
             return RubricResult(items=[item])
+
+        if (
+            set(task_spec.success_criteria) != {"rubric"}
+            or not isinstance(rubric, list)
+            or not 1 <= len(rubric) <= 100
+            or any(not self._valid_criterion(criterion) for criterion in rubric)
+        ):
+            return RubricResult(
+                items=[RubricItem("invalid_rubric", 1.0, detail="invalid rubric schema")]
+            )
 
         items = []
         for criterion in rubric:
@@ -112,6 +123,52 @@ class RubricChecker:
                 )
             items.append(item)
         return RubricResult(items=items)
+
+    @staticmethod
+    def _valid_criterion(criterion: dict) -> bool:
+        if not isinstance(criterion, dict):
+            return False
+        required = {
+            "file_exists": {"path"},
+            "file_contains": {"path", "expected"},
+            "output_contains": {"expected"},
+            "exit_code": {"expected"},
+            "oracle_command": {"command"},
+        }
+        kind = criterion.get("type")
+        if not isinstance(kind, str) or kind not in required:
+            return False
+        allowed = required[kind] | {"name", "weight", "type"}
+        if kind == "oracle_command":
+            allowed |= {"expected"}
+        if set(criterion) - allowed or not required[kind].issubset(criterion):
+            return False
+        weight = criterion.get("weight", 1.0)
+        if (
+            type(weight) not in (int, float)
+            or not math.isfinite(weight)
+            or not 0 < weight <= 1_000_000
+        ):
+            return False
+        for key in ("name", "path", "command"):
+            if key in criterion and (
+                not isinstance(criterion[key], str)
+                or not criterion[key].strip()
+                or len(criterion[key]) > 100_000
+            ):
+                return False
+        if "expected" in criterion:
+            value = criterion["expected"]
+            if kind == "exit_code":
+                if type(value) is not int:
+                    return False
+            elif not isinstance(value, str) or len(value) > 1_048_576:
+                return False
+            elif kind in {"file_contains", "output_contains"} and not value:
+                return False
+            elif kind == "output_contains" and not value.strip():
+                return False
+        return True
 
     # ------------------------------------------------------------------
     # Criterion evaluators
@@ -194,7 +251,9 @@ class RubricChecker:
             try:
                 result = run_command(cmd, workdir, self._timeout, self.backend)
                 actual = result.stdout.strip()
-                passed = result.returncode == 0 and (not expected or expected == actual)
+                passed = result.returncode == 0 and (
+                    "expected" not in criterion or expected == actual
+                )
             except subprocess.TimeoutExpired:
                 return RubricItem(
                     name=name, weight=weight, passed=False, score=0.0, detail="oracle timed out"
